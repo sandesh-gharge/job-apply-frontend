@@ -12,7 +12,7 @@ export class AuthService {
   login(email: string, password: string): boolean {
     if (email && password.length >= 6) {
       const name = email.split('@')[0].replace(/[._]/g, ' ');
-      this.currentUser.set({ email, name });
+      this.currentUser.set({ email, name, location: '' });
       
       return true;
     }

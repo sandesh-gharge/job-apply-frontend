@@ -1,8 +1,9 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { JobsService, Job, JobStatus } from '../utils/services/jobs';
+import { JobsService } from '../utils/services/jobs';
 import { JobCountPipe } from '../utils/pipes/job-count.pipe';
 import { ToastService } from '../utils/services/toast';
+import { JobDetails, JobStatus } from '../utils/entities/job-details';
 
 @Component({
   selector: 'app-job-tracker',
@@ -19,12 +20,12 @@ export class JobTrackerComponent {
 
   filterStatus = signal<JobStatus | 'All'>('All');
   showModal = signal(false);
-  editingJob = signal<Job | null>(null);
-  sortField = signal<'appliedDate' | 'company' | 'status'>('appliedDate');
+  editingJob = signal<JobDetails | null>(null);
+  sortField = signal<'appliedDate' | 'companyName' | 'status'>('appliedDate');
   sortDir = signal<'asc' | 'desc'>('desc');
 
-  form = signal<Omit<Job, 'id'>>({
-    company: '', role: '', location: '', appliedDate: new Date().toISOString().split('T')[0],
+  form = signal<Omit<JobDetails, 'id'>>({
+    companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0],
     status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: ''
   });
 
@@ -41,20 +42,20 @@ export class JobTrackerComponent {
 
   openAddModal() {
     this.editingJob.set(null);
-    this.form.set({ company: '', role: '', location: '', appliedDate: new Date().toISOString().split('T')[0], status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '' });
+    this.form.set({ companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0], status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '' });
     this.showModal.set(true);
   }
 
-  openEditModal(job: Job) {
+  openEditModal(job: JobDetails) {
     this.editingJob.set(job);
-    this.form.set({ company: job.company, role: job.role, location: job.location, appliedDate: job.appliedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '' });
+    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: job.appliedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '' });
     this.showModal.set(true);
   }
 
   saveJob() {
     const editing = this.editingJob();
     if (editing) {
-      this.jobsService.updateJob(editing.id, this.form());
+      this.jobsService.updateJob(editing.id ?? '', this.form());
       this.toast.show('Application updated!');
     } else {
       this.jobsService.addJob(this.form());
@@ -71,14 +72,14 @@ export class JobTrackerComponent {
   }
 
   updateFormStatus(status: JobStatus) { this.form.update(f => ({ ...f, status })); }
-  updateFormField(field: keyof Omit<Job,'id'>, value: string) { this.form.update(f => ({ ...f, [field]: value })); }
+  updateFormField(field: keyof Omit<JobDetails,'id'>, value: string) { this.form.update(f => ({ ...f, [field]: value })); }
 
   quickStatusChange(id: string, status: JobStatus) {
     this.jobsService.updateJob(id, { status });
     this.toast.show(`Status updated to "${status}"`);
   }
 
-  toggleSort(field: 'appliedDate' | 'company' | 'status') {
+  toggleSort(field: 'appliedDate' | 'companyName' | 'status') {
     if (this.sortField() === field) {
       this.sortDir.update(d => d === 'asc' ? 'desc' : 'asc');
     } else {
@@ -87,12 +88,12 @@ export class JobTrackerComponent {
     }
   }
 
-  statusColor(status: JobStatus): string {
+  statusColor(status: JobStatus | undefined): string {
     const map: Record<JobStatus, string> = {
-      'Applied': 'blue', '1st Interview': 'amber', '2nd Interview': 'amber',
+      'Open': 'lightgray', 'Applied': 'blue', '1st Interview': 'amber', '2nd Interview': 'amber',
       '3rd Interview': 'amber', 'Offer': 'green', 'Rejected': 'red', 'Withdrawn': 'gray'
     };
-    return map[status] ?? 'gray';
+    return status? map[status] : 'gray';
   }
 
   formatDate(d: string): string {

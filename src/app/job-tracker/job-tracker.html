@@ -33,8 +33,8 @@
       <table class="jobs-table">
         <thead>
           <tr>
-            <th class="sortable" (click)="toggleSort('company')">
-              Company <span class="sort-icon">{{ sortIcon('company') }}</span>
+            <th class="sortable" (click)="toggleSort('companyName')">
+              Company <span class="sort-icon">{{ sortIcon('companyName') }}</span>
             </th>
             <th>Role</th>
             <th>Location</th>
@@ -54,9 +54,9 @@
             <tr>
               <td>
                 <div class="company-cell">
-                  <div class="company-avatar">{{ job.company[0] }}</div>
+                  <div class="company-avatar">{{ job.companyName }}</div>
                   <div>
-                    <div class="company-name">{{ job.company }}</div>
+                    <div class="company-name">{{ job.companyName }}</div>
                     @if (job.jobUrl) {
                       <a class="job-url-link" [href]="job.jobUrl" target="_blank">View posting ↗</a>
                     }
@@ -64,14 +64,14 @@
                 </div>
               </td>
               <td class="role-cell">{{ job.role }}</td>
-              <td class="muted">{{ job.location }}</td>
-              <td class="muted">{{ formatDate(job.appliedDate) }}</td>
+              <td class="muted">{{ job.companyLocation }}</td>
+              <td class="muted">{{ formatDate(job.appliedDate ?? '') }}</td>
               <td class="muted">{{ job.contactName || '—' }}</td>
               <td class="muted">{{ job.salary || '—' }}</td>
               <td>
                 <select class="status-select status-select-{{ statusColor(job.status) }}"
                   [ngModel]="job.status"
-                  (ngModelChange)="quickStatusChange(job.id, $event)">
+                  (ngModelChange)="quickStatusChange(job.id ?? '', $event)">
                   @for (s of statuses; track s) {
                     <option [value]="s">{{ s }}</option>
                   }
@@ -80,7 +80,7 @@
               <td>
                 <div class="action-btns">
                   <button class="btn-icon" (click)="openEditModal(job)" title="Edit">✎</button>
-                  <button class="btn-icon btn-icon-danger" (click)="deleteJob(job.id)" title="Delete">✕</button>
+                  <button class="btn-icon btn-icon-danger" (click)="deleteJob(job.id ?? '')" title="Delete">✕</button>
                 </div>
               </td>
             </tr>
@@ -110,7 +110,7 @@
             <div class="field">
               <label>Company *</label>
               <input type="text" placeholder="e.g. SAP SE"
-                [ngModel]="form().company" (ngModelChange)="updateFormField('company', $event)" />
+                [ngModel]="form().companyName" (ngModelChange)="updateFormField('companyName', $event)" />
             </div>
             <div class="field">
               <label>Role *</label>
@@ -120,7 +120,7 @@
             <div class="field">
               <label>Location</label>
               <input type="text" placeholder="e.g. München, DE"
-                [ngModel]="form().location" (ngModelChange)="updateFormField('location', $event)" />
+                [ngModel]="form().companyLocation" (ngModelChange)="updateFormField('companyLocation', $event)" />
             </div>
             <div class="field">
               <label>Applied Date</label>
@@ -158,7 +158,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn-outline" (click)="showModal.set(false)">Cancel</button>
-          <button class="btn-primary" (click)="saveJob()" [disabled]="!form().company || !form().role">
+          <button class="btn-primary" (click)="saveJob()" [disabled]="!form().companyName || !form().role">
             {{ editingJob() ? 'Save Changes' : 'Add Application' }}
           </button>
         </div>

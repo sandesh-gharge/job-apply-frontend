@@ -8,6 +8,16 @@ export const selectCurrentUser = createSelector(
     (state: AuthState) => state.user
 );
 
+export const selectCurrentUserLocation = createSelector(
+    selectCurrentUser,
+    (user) => user?.location ?? ''
+);
+
+export const selectCurrentUserName = createSelector(
+    selectCurrentUser,
+    (user) => user?.name ?? ''
+);
+
 export const selectIsAuthenticated = createSelector(
     selectAuthState,
     (state: AuthState) => state.isAuthenticated

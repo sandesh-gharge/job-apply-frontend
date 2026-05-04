@@ -2,8 +2,14 @@ import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CvBuilderComponent } from '../cv-builder/cv-builder';
 import { ToastService } from '../utils/services/toast';
-import { JobsService, SkillGroup } from '../utils/services/jobs';
+import { JobsService } from '../utils/services/jobs';
 import { CoverLetterComponent } from "../cover-letter/cover-letter";
+import { SkillGroup } from '../utils/entities/job-details';
+import { Store } from '@ngrx/store';
+import { extractJobDetails, goToStep } from '../utils/store/job-application/actions';
+import { selectJobApplicationStep, selectJobDescription, selectJobDescriptionLoading, selectJobDetailsExtracting, selectJobUrl } from '../utils/store/job-application/selectors';
+import { filter, pairwise, take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface CoverLetterSection {
   id: string; title: string; content: string; prompt: string; loading: boolean;
@@ -34,14 +40,17 @@ const CAT_ICONS: Record<string, string> = {
 export class ApplyJobComponent {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
+  private store = inject(Store);
 
-  step = signal(1);
+  step = this.store.selectSignal(selectJobApplicationStep);
+  loading = this.store.selectSignal(selectJobDetailsExtracting);
 
   // Step 1
   jobUrl = signal('');
-  jobDescription = signal('');
+  jobDescription = signal<string>('');
   fetchLoading = signal(false);
-  parseLoading = signal(false);
+
+  parseLoading = this.store.selectSignal(selectJobDetailsExtracting);
   parsedCompany = signal('');
   parsedRole = signal('');
   parsedLocation = signal('');
@@ -49,7 +58,6 @@ export class ApplyJobComponent {
   // Step 2
   skillGroups = signal<SkillGroup[]>(SKILL_CATEGORIES.map(c => ({ category: c, skills: [] })));
   newSkills: Record<string, string> = {};
-  cvGenerating = signal(false);
 
   // Step 3
   meta = signal<CoverLetterMeta>({
@@ -69,84 +77,35 @@ export class ApplyJobComponent {
   categoryIcon(cat: string): string { return CAT_ICONS[cat] ?? '◆'; }
 
   // ── Step 1 ─────────────────────────────────────────────────────
-  async fetchJob() {
+  fetchJob() {
     const url = this.jobUrl().trim();
     if (!url) return;
     this.fetchLoading.set(true);
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 1200,
-          messages: [{ role: 'user', content: `The user provided this job posting URL: ${url}\n\nSince you cannot browse the internet, generate a realistic sample job description for a software engineering role in Germany that would plausibly appear at this URL. Make it detailed with: company name, role title, location, responsibilities, required skills (programming languages, frameworks, databases, DevOps tools), and qualifications. Format as clean plain-text job description.` }]
-        })
-      });
-      const data = await res.json();
-      const text = data.content?.find((c: any) => c.type === 'text')?.text ?? '';
-      this.jobDescription.set(text);
-      await this.parseJobMeta(text);
-      this.toast.show('Job details loaded! Review and click Next.');
-    } catch {
-      this.toast.show('Could not load job. Paste description manually.', 'error');
-    } finally { this.fetchLoading.set(false); }
+    this.jobsService.extractJobDescription(url).subscribe({
+      next: desc => {
+        this.jobDescription.set(desc.description);
+        this.toast.show('Job description loaded! Extracting details...');
+      },
+      error: err => {
+        console.error('Error fetching job description:', err);
+        this.toast.show('Failed to load job description', 'error');
+      },
+      complete: () => {
+        this.fetchLoading.set(false);
+      }
+    });
   }
 
-  async parseJobMeta(description: string) {
-    this.parseLoading.set(true);
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 300,
-          system: 'Extract job metadata. Return ONLY JSON: {"company":"","role":"","location":"","hiringManager":""}. No markdown.',
-          messages: [{ role: 'user', content: description }]
-        })
-      });
-      const data = await res.json();
-      const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '{}';
-      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
-      this.parsedCompany.set(parsed.company ?? '');
-      this.parsedRole.set(parsed.role ?? '');
-      this.parsedLocation.set(parsed.location ?? '');
-      this.meta.update(m => ({ ...m, companyName: parsed.company ?? m.companyName, companyLocation: parsed.location ?? m.companyLocation, role: parsed.role ?? m.role, hiringManager: parsed.hiringManager ?? m.hiringManager }));
-    } catch { /* silent */ } finally { this.parseLoading.set(false); }
-  }
-
-  goToStep2() {
+  extractJobDetails() {
     if (!this.jobDescription().trim()) { this.toast.show('Please enter a job description first.', 'error'); return; }
-    this.step.set(2);
-    this.extractSkills();
+    this.store.dispatch(extractJobDetails(this.jobDescription()));
   }
 
-  goToStep3() {
-    this.step.set(3);
+  goToStep(val: number) {
+    this.store.dispatch(goToStep(val ));
   }
 
   // ── Step 2 ─────────────────────────────────────────────────────
-  async extractSkills() {
-    this.cvGenerating.set(true);
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 800,
-          system: `Extract and categorise skills from a job description. Return ONLY a JSON array, no markdown:\n[{"category":"Programming Languages","skills":[]},{"category":"Language Frameworks","skills":[]},{"category":"Databases","skills":[]},{"category":"Monitoring Tools","skills":[]},{"category":"DevOps Tools","skills":[]},{"category":"Cloud Platforms","skills":[]},{"category":"Other Skills","skills":[]}]`,
-          messages: [{ role: 'user', content: this.jobDescription() }]
-        })
-      });
-      const data = await res.json();
-      const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
-      const parsed: SkillGroup[] = JSON.parse(raw.replace(/```json|```/g, '').trim());
-      const merged = SKILL_CATEGORIES.map(cat => {
-        const found = parsed.find(p => p.category === cat);
-        return { category: cat, skills: found?.skills ?? [] };
-      });
-      this.skillGroups.set(merged);
-      this.toast.show('Skills extracted!');
-    } catch {
-      this.toast.show('Could not extract skills. Add manually.', 'error');
-    } finally { this.cvGenerating.set(false); }
-  }
 
   addSkill(category: string) {
     const val = (this.newSkills[category] ?? '').trim();
@@ -246,9 +205,9 @@ export class ApplyJobComponent {
     this.applyLoading.set(true);
     const m = this.meta();
     const jobData = {
-      company: m.companyName || this.parsedCompany() || 'Unknown Company',
+      companyName: m.companyName || this.parsedCompany() || 'Unknown Company',
       role: m.role || this.parsedRole() || 'Unknown Role',
-      location: m.companyLocation || this.parsedLocation() || '',
+      companyLocation: m.companyLocation || this.parsedLocation() || '',
       appliedDate: new Date().toISOString().split('T')[0],
       status: 'Applied' as const,
       jobUrl: this.jobUrl(),
@@ -259,10 +218,10 @@ export class ApplyJobComponent {
     };
     setTimeout(() => {
       this.jobsService.addJob(jobData);
-      this.toast.show(`Applied to ${jobData.company}! Added to Job Tracker.`);
+      this.toast.show(`Applied to ${jobData.companyName}! Added to Job Tracker.`);
       this.applyLoading.set(false);
-      this.step.set(1);
-      this.jobUrl.set(''); this.jobDescription.set('');
+      this.store.dispatch(goToStep(1));
+      this.jobUrl.set(''); //this.jobDescription.set('');
       this.parsedCompany.set(''); this.parsedRole.set(''); this.parsedLocation.set('');
       this.skillGroups.set(SKILL_CATEGORIES.map(c => ({ category: c, skills: [] })));
       this.sections.set([
