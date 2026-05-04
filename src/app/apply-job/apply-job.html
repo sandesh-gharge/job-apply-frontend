@@ -56,7 +56,7 @@
 
       <div class="step-footer">
         <span class="char-count">{{ jobDescription().length }} characters</span>
-        <button class="btn-next" (click)="goToStep2()" [disabled]="!jobDescription().trim()">
+        <button class="btn-next" (click)="goToStep(2)" [disabled]="!jobDescription().trim()">
           Next: Cover Letter →
         </button>
       </div>
@@ -68,12 +68,12 @@
   <!-- ══════════════════════════════════════════════════ -->
   @if (step() === 2) {
     <div class="step-panel">
-      <app-cover-letter [jobDescription]="jobDescription"/>
+      <app-cover-letter/>
 
       <div class="step-footer apply-footer">
-        <button class="btn-back" (click)="step.set(1)">← Back</button>
+        <button class="btn-back" (click)="goToStep(1)">← Back</button>
         <div class="footer-right">
-          <button class="btn-next" (click)="goToStep3()">
+          <button class="btn-next" (click)="goToStep(3)">
             Next: CV Skills →
           </button>
         </div>
@@ -88,7 +88,7 @@
     <div class="step-panel">
       <app-cv-builder [prefillSkills]="skillGroups()" />
       <div class="step-footer apply-footer">
-        <button class="btn-back" (click)="step.set(2)">← Back</button>
+        <button class="btn-back" (click)="goToStep(2)">← Back</button>
         <div class="footer-right">
           <button class="btn-apply" (click)="applyJob()" [disabled]="applyLoading()">
             @if (applyLoading()) { <span class="spinner"></span> Submitting… }

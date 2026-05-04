@@ -1,7 +1,8 @@
 import { Component, inject, computed } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
-import { JobsService, JobStatus } from '../utils/services/jobs';
 import { AuthService } from '../utils/services/auth';
+import { JobsService } from '../utils/services/jobs';
+import { JobStatus } from '../utils/entities/job-details';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,21 +20,21 @@ export class DashboardComponent {
   get user() { return this.auth.getUser(); }
 
   upcomingInterviews = computed(() =>
-    this.jobsService.jobs().filter(j => j.status.includes('Interview')).slice(0, 5)
+    this.jobsService.jobs().filter(j => j.status?.includes('Interview')).slice(0, 5)
   );
 
   recentActivity = computed(() =>
     [...this.jobsService.jobs()]
-      .sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime())
+      .sort((a, b) => new Date(b.appliedDate ?? '').getTime() - new Date(a.appliedDate ?? '').getTime())
       .slice(0, 5)
   );
 
-  statusColor(status: JobStatus): string {
+  statusColor(status: JobStatus | undefined): string {
     const map: Record<JobStatus, string> = {
-      'Applied': 'blue', '1st Interview': 'amber', '2nd Interview': 'amber',
+      'Open': 'lightgray', 'Applied': 'blue', '1st Interview': 'amber', '2nd Interview': 'amber',
       '3rd Interview': 'amber', 'Offer': 'green', 'Rejected': 'red', 'Withdrawn': 'gray'
     };
-    return map[status] ?? 'gray';
+    return status? map[status] : 'gray';
   }
 
   formatDate(d: string): string {

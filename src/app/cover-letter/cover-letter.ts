@@ -1,6 +1,9 @@
 import { Component, signal, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast';
+import { Store } from '@ngrx/store';
+import { selectCurrentUser, selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
+import { selectJobDetails } from '../utils/store/job-application/selectors';
 
 export interface CoverLetterSection {
   id: string;
@@ -28,20 +31,30 @@ export interface CoverLetterMeta {
 })
 export class CoverLetterComponent {
   private toast = inject(ToastService);
+  private store = inject(Store);
 
   // ── Common prompt — applied globally to every section call ─────
   commonPrompt = signal('');
 
+
+  
+  private applicantName = this.store.selectSignal(selectCurrentUserName) ?? '';
+  private applicantLocation = this.store.selectSignal(selectCurrentUserLocation) ?? '';
+  private jobDetails = this.store.selectSignal(selectJobDetails) ?? null;
+
+
+
   meta = signal<CoverLetterMeta>({
-    applicantName: '',
-    applicantLocation: '',
-    companyName: '',
-    companyLocation: '',
-    role: '',
-    hiringManager: '',
+    applicantName: this.applicantName(),
+    applicantLocation: this.applicantLocation(),
+    companyName: this.jobDetails()?.companyName ?? '',
+    companyLocation: this.jobDetails()?.companyLocation ?? '',
+    role: this.jobDetails()?.role ?? '',
+    hiringManager: this.jobDetails()?.contactName ?? '',
     date: new Date().toISOString().split('T')[0]
   });
 
+  
   sections = signal<CoverLetterSection[]>([
     { id: '1', title: 'Introduction',      content: '', sectionPrompt: '', loading: false },
     { id: '2', title: 'Why this company?', content: '', sectionPrompt: '', loading: false },
@@ -52,8 +65,6 @@ export class CoverLetterComponent {
   generatingFull = signal(false);
   previewMode    = signal(false);
   copySuccess    = signal(false);
-
-  @Input() jobDescription = signal('');
 
   // ── Meta ───────────────────────────────────────────────────────
   updateMeta(field: keyof CoverLetterMeta, value: string) {

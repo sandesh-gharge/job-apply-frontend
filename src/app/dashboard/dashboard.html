@@ -43,9 +43,9 @@
       }
       @for (job of upcomingInterviews(); track job.id) {
         <div class="interview-row">
-          <div class="interview-avatar">{{ job.company[0] }}</div>
+          <div class="interview-avatar">{{ job.companyName }}</div>
           <div class="interview-info">
-            <div class="interview-company">{{ job.company }}</div>
+            <div class="interview-company">{{ job.companyName }}</div>
             <div class="interview-role">{{ job.role }}</div>
           </div>
           <span class="badge badge-amber">{{ job.status }}</span>
@@ -58,12 +58,12 @@
       @for (job of recentActivity(); track job.id) {
         <div class="activity-row">
           <div class="activity-info">
-            <div class="activity-company">{{ job.company }}</div>
-            <div class="activity-meta">{{ job.role }} · {{ job.location }}</div>
+            <div class="activity-company">{{ job.companyName }}</div>
+            <div class="activity-meta">{{ job.role }} · {{ job.companyLocation }}</div>
           </div>
           <div class="activity-right">
             <span class="badge badge-{{ statusColor(job.status) }}">{{ job.status }}</span>
-            <div class="activity-date">{{ formatDate(job.appliedDate) }}</div>
+            <div class="activity-date">{{ formatDate(job.appliedDate ?? '') }}</div>
           </div>
         </div>
       }
