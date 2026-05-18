@@ -15,8 +15,14 @@
       <button class="btn-edit-toggle" [class.active]="editMode()" (click)="editMode.set(!editMode())">
         {{ editMode() ? '✓ Done Editing' : '✎ Edit Mode' }}
       </button>
+      <select class="cv-version-select" (change)="onVersionChange($event)">
+        @for (v of cvInfo; track v.version) {
+          <option [value]="v.version">{{ v.title }}</option>
+        }
+      </select>
       <button class="btn-action" (click)="saveNow()">💾 Save</button>
-      <button class="btn-action" (click)="exportJson()">↓ Export</button>
+      <button class="btn-action" (click)="saveNew()">💾 SaveAs</button>
+      <!--<button class="btn-action" (click)="exportJson()">↓ Export</button>-->
       <button class="btn-action btn-danger-soft" (click)="clearCv()">✕ Clear</button>
     </div>
   </div>
@@ -71,9 +77,7 @@
               </div>
               <div class="sub-label">Address</div>
               <div class="fields-grid">
-                <div class="field"><label>City</label><input type="text" [ngModel]="cv().personalInfo.address.city" (ngModelChange)="updateAddress('city',$event)" placeholder="Berlin" /></div>
-                <div class="field"><label>State</label><input type="text" [ngModel]="cv().personalInfo.address.state" (ngModelChange)="updateAddress('state',$event)" placeholder="Brandenburg" /></div>
-                <div class="field"><label>Country</label><input type="text" [ngModel]="cv().personalInfo.address.country" (ngModelChange)="updateAddress('country',$event)" placeholder="Germany" /></div>
+                <div class="field"><label>Location</label><input type="text" [ngModel]="cv().personalInfo.address" (ngModelChange)="updatePersonal('address',$event)" placeholder="Berlin" /></div>
               </div>
               <div class="sub-label">Online Links</div>
               <div class="fields-grid">

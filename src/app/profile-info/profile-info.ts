@@ -12,7 +12,7 @@ import { loadProfileInfo, updateProfileInfo } from '../utils/store/profile/profi
   templateUrl: './profile-info.html',
   styleUrl: './profile-info.scss',
 })
-export class ProfileInfoComponent implements OnInit {
+export class ProfileInfoComponent {
 
   private toast = inject(ToastService);
   private store = inject(Store);
@@ -27,17 +27,12 @@ export class ProfileInfoComponent implements OnInit {
     })
   }
 
-  ngOnInit(): void {
-    if(this.profileFromStore()?.id)
-      return
-    this.store.dispatch(loadProfileInfo());
-  }
-
   profileFromStore = this.store.selectSignal(selectProfileInfo);
   profile= signal<ProfileInfo>({
     id: '',
     firstName: '',
     lastName: '',
+    location: '',
     email: '',
     apiUrl: '',
     apiKey: ''
