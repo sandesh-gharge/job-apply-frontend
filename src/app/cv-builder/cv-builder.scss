@@ -33,6 +33,14 @@
 }
 .btn-danger-soft { color: #dc2626; &:hover { background: #fee2e2; border-color: #fecaca; } }
 
+.cv-version-select {
+  padding: 7px 12px; border-radius: 8px; border: 1px solid #d1d5db;
+  background: white; color: #374151; font-size: 0.82rem; cursor: pointer;
+  outline: none; transition: all 0.15s;
+  &:hover { background: #f3f4f6; }
+  &:focus { border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,0.08); }
+}
+
 /* ── Edit hint ───────────────────────────────────────────── */
 .cv-hint {
   background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;

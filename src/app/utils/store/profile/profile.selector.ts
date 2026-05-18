@@ -8,6 +8,11 @@ export const selectProfileInfo = createSelector(
     (state: ProfileInfoState) => state.profileInfo
 );
 
+export const profileLocation = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.location
+)
+
 export const selectCVInfo = createSelector(
     selectProfileState,
     (state: ProfileInfoState) => state.cvInfo

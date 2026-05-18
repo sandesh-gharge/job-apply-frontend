@@ -5,7 +5,7 @@ export interface CvLinks { linkedin: string; github: string; portfolio: string; 
 export interface CvPersonalInfo {
   firstName: string; lastName: string; headline: string;
   email: string; phone: string;
-  address: CvAddress; links: CvLinks;
+  address: string; links: CvLinks;
 }
 export interface CvLanguage { id: string; language: string; proficiency: string; }
 export interface CvSkills {
@@ -74,8 +74,52 @@ export interface CvSection {
 }
 
 export interface CVInfo {
+  _id?: string;
+  title?: string;
   data: CvData;
-  createdAt: string;
-  updatedAt: string;
-  version: string;
+  createdAt?: string;
+  updatedAt?: string;
+  version?: number;
 }
+
+export const defaultCV = (): CvData => ({
+    personalInfo: {
+      firstName: '',
+      lastName: '',
+      headline: '',
+      email: '',
+      phone: '',
+      address: '',
+      links: {
+        linkedin: '',
+        github: '',
+        portfolio: '',
+        website: ''
+      },
+    },
+    summary: '',
+    skills: {
+      technical: [],
+      soft: [],
+      tools: [],
+      frameworks: [],
+      languages: []
+    },
+    experience: [],
+    education: [],
+    projects: [],
+    certifications: [],
+    awards: [],
+    publications: [],
+    volunteerExperience: [],
+    interests: [],
+    references: [],
+    customSections: [],
+    metadata: {
+      createdAt: '',
+      updatedAt: '',
+      version: '',
+      source: ''
+    }
+  }
+)

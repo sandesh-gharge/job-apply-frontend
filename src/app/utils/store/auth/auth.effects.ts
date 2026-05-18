@@ -5,6 +5,7 @@ import { AuthService } from "../../services/auth.service";
 import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
 import { User } from "../../entities/user";
 import { Router } from "@angular/router";
+import { loadProfileInfo } from "../profile/profile.actions";
 
 
 @Injectable()
@@ -47,9 +48,18 @@ export class AuthEffects {
 
                 this.router.navigate(['/home']);
                 console.log("Login successful for user:", user, "with token:", token);
+                
             })
+
         ), { dispatch: false }
     );
+
+    loadProfileOnLogin$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(loginSuccess),
+      map(() => loadProfileInfo())
+    )
+  );
 
     loginFailure$ = createEffect(() =>
         this.actions$.pipe(

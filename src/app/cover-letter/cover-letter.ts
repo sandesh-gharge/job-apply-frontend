@@ -1,12 +1,13 @@
-import { Component, signal, inject, Input } from '@angular/core';
+import { Component, signal, inject, Input, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { Store } from '@ngrx/store';
-import { selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
+import { selectCurrentUserName } from '../utils/store/auth/auth.selectors';
 import { JobDetails } from '../utils/entities/job-details';
 import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
 import { CoverLetterSection } from '../utils/entities/cover-letter';
+import { selectProfileInfo } from '../utils/store/profile/profile.selector';
 
 @Component({
   selector: 'app-cover-letter',
@@ -23,14 +24,12 @@ export class CoverLetterComponent {
   commonPrompt = signal('');
 
 
-  
-  applicantName = this.store.selectSignal(selectCurrentUserName) ?? '';
-  applicantLocation = this.store.selectSignal(selectCurrentUserLocation) ?? '';
+  profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
 
   meta = signal({
-    applicantName: this.applicantName(),
-    applicantLocation: this.applicantLocation(),
+    applicantName: '',
+    applicantLocation: '',
     companyName: '',
     companyLocation: '',
     role: '',
@@ -45,21 +44,32 @@ export class CoverLetterComponent {
         companyName: j?.companyName || '',
         companyLocation: j?.companyLocation || '',
         role: j?.role || '',
-        hiringManager: j ?.contactName || 'Hiring Manager'
+        hiringManager: j?.contactName || 'Hiring Manager'
       }))
-    }); 
+    });
+
+    effect(() => {
+      const tempInfo = this.profileInfo();
+      if (tempInfo)
+        this.meta.update(m => (
+          { 
+            ...m,
+            applicantName: tempInfo.firstName + ' ' +tempInfo.lastName,
+            applicantLocation: tempInfo.location
+          }))
+    })
   }
-  
+
   sections = signal<CoverLetterSection[]>([
-    { id: '1', title: 'Introduction',      content: '', sectionPrompt: '', loading: false },
+    { id: '1', title: 'Introduction', content: '', sectionPrompt: '', loading: false },
     { id: '2', title: 'Why this company?', content: '', sectionPrompt: '', loading: false },
-    { id: '3', title: 'Why me?',           content: '', sectionPrompt: '', loading: false },
-    { id: '4', title: 'Closing',           content: '', sectionPrompt: '', loading: false }
+    { id: '3', title: 'Why me?', content: '', sectionPrompt: '', loading: false },
+    { id: '4', title: 'Closing', content: '', sectionPrompt: '', loading: false }
   ]);
 
   generatingFull = signal(false);
-  previewMode    = signal(false);
-  copySuccess    = signal(false);
+  previewMode = signal(false);
+  copySuccess = signal(false);
 
   // ── Meta ───────────────────────────────────────────────────────
   updateField(field: keyof JobDetails, value: string) {
@@ -96,8 +106,8 @@ export class CoverLetterComponent {
   // Common: global tone, background, skills context.
   // Section: targeted instruction for that specific paragraph.
   private buildSectionPrompt(section: CoverLetterSection): string {
-    const m     = this.meta();
-    const common   = this.commonPrompt().trim();
+    const m = this.meta();
+    const common = this.commonPrompt().trim();
     const specific = section.sectionPrompt.trim();
 
     const context =
@@ -107,7 +117,7 @@ export class CoverLetterComponent {
 
     const parts: string[] = [`Section to write: "${section.title}"`, `Context: ${context}`];
 
-    if (common)   parts.push(`Global guidance (tone, background, skills):\n${common}`);
+    if (common) parts.push(`Global guidance (tone, background, skills):\n${common}`);
     if (specific) parts.push(`Specific instruction for this section:\n${specific}`);
     if (section.content) parts.push(`Existing draft to improve:\n"${section.content}"`);
 
@@ -159,7 +169,7 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
   // ── Generate full letter ───────────────────────────────────────
   async generateFullLetter() {
     this.generatingFull.set(true);
-    const m      = this.meta();
+    const m = this.meta();
     const common = this.commonPrompt().trim();
     const titles = this.sections().map(s => s.title).join(', ');
 
@@ -186,7 +196,7 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
       });
 
       const data = await res.json();
-      const raw  = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
+      const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
       const parsed: { title: string; content: string }[] = JSON.parse(
         raw.replace(/```json|```/g, '').trim()
       );
@@ -211,7 +221,7 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
 
   // ── Preview ────────────────────────────────────────────────────
   get previewText(): string {
-    const m    = this.meta();
+    const m = this.meta();
     const body = this.sections().map(s => s.content).filter(Boolean).join('\n\n');
     return [
       m.applicantName,

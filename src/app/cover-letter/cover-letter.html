@@ -26,12 +26,12 @@
         <div class="field">
           <label>Applicant Name</label>
           <input type="text" placeholder="e.g. Maria Müller"
-            [ngModel]="applicantName()" />
+            [ngModel]="meta().applicantName" />
         </div>
         <div class="field">
           <label>Applicant Location</label>
           <input type="text" placeholder="e.g. Berlin, Germany"
-            [ngModel]="applicantLocation()" />
+            [ngModel]="meta().applicantLocation" />
         </div>
         <div class="field">
           <label>Company Name</label>
@@ -147,8 +147,8 @@
       <div class="letter-preview">
         <div class="letter-meta-block">
           <div class="letter-sender">
-            <strong>{{ applicantName() || '[Your Name]' }}</strong>
-            <span>{{ applicantLocation() }}</span>
+            <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+            <span>{{ meta().applicantLocation }}</span>
           </div>
           <div class="letter-date">{{ formatDisplayDate('') }}</div>
         </div>
@@ -169,7 +169,7 @@
         }
         <div class="letter-closing">
           <p>Yours sincerely,</p>
-          <strong>{{ applicantName() || '[Your Name]' }}</strong>
+          <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
         </div>
       </div>
     </div>

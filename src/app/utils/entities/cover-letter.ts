@@ -13,6 +13,8 @@ export interface CoverLetterSection {
 }
 
 export interface CoverLetterInfo {
+  _id: string;
+  title: string;
   data: CoverLetterPrompts;
   createdAt: string;
   updatedAt: string;

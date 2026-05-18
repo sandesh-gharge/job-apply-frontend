@@ -1,27 +1,13 @@
-import { Component, signal, inject, computed, Input } from '@angular/core';
+import { Component, signal, inject, computed, Input, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
-import { StorageService } from '../utils/services/storage.service';
-import { CvCertification, CvCustomSection, CvData, CvEducation, CvExperience, CvProject, CvSection, CvSkills } from '../utils/entities/cv';
+import { CvCertification, CvCustomSection, CvData, CvEducation, CvExperience, CVInfo, CvProject, CvSection, CvSkills, defaultCV } from '../utils/entities/cv';
+import { CvService } from '../utils/services/cv.service';
 
 
 
 function makeId() { return Math.random().toString(36).slice(2, 9); }
-
-const DEFAULT_CV: CvData = {
-  personalInfo: {
-  firstName: '', lastName: '', headline: '', email: '', phone: '',
-  address: { city: '', state: '', country: '' },
-    links: { linkedin: '', github: '', portfolio: '', website: '' }
-  },
-  summary: '',
-  skills: { technical: [], soft: [], tools: [], frameworks: [], languages: [] },
-  experience: [], education: [], projects: [], certifications: [],
-  awards: [], publications: [], volunteerExperience: [],
-  interests: [], references: [], customSections: [],
-  metadata: { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), version: '1.0', source: 'manual' }
-};
 
 const PROFICIENCY_LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper-Intermediate', 'Advanced', 'Native'];
 
@@ -31,16 +17,28 @@ const PROFICIENCY_LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper-Int
   templateUrl: './cv-builder.html',
   styleUrl: './cv-builder.scss'
 })
-export class CvBuilderComponent {
+export class CvBuilderComponent implements OnInit{
+  
   private toast = inject(ToastService);
-  private storage = inject(StorageService);
+  private cvService = inject(CvService);
+
+  cvInfo : CVInfo[] = [];
+  defaultVersion = signal(1);
+  cv = signal<CvData>(defaultCV());
+
+  ngOnInit(): void {
+    this.cvService.getCVs().then(data => {
+      this.cvInfo = data;
+      this.cv.set(this.cvInfo.find(c => c.version == this.defaultVersion())?.data || this.cv())
+  }).catch(error => this.toast.show(error))
+  }
 
   // Optional: pre-fill from job description skills
   @Input() set prefillSkills(groups: Array<{ category: string; skills: string[] }>) {
     if (!groups?.length) return;
     const cv = this.cv();
-    const tech = groups.find(g => g.category === 'Programming Languages')?.skills ?? [];
-    const fw = groups.find(g => g.category === 'Language Frameworks')?.skills ?? [];
+    const tech = groups.find(g => g.category === 'Frontend')?.skills ?? [];
+    const fw = groups.find(g => g.category === 'Backend')?.skills ?? [];
     const tools = [
       ...(groups.find(g => g.category === 'DevOps Tools')?.skills ?? []),
       ...(groups.find(g => g.category === 'Monitoring Tools')?.skills ?? []),
@@ -57,8 +55,6 @@ export class CvBuilderComponent {
     }));
     this.toast.show('Skills pre-filled from job description!');
   }
-
-  cv = signal<CvData>(this.storage.get<CvData>('jad_cv', DEFAULT_CV));
 
   // Global edit mode — shows checkboxes and edit controls
   editMode = signal(false);
@@ -95,13 +91,62 @@ export class CvBuilderComponent {
 
   proficiencyLevels = PROFICIENCY_LEVELS;
 
+  
+  // ── Autosave ──────────────────────────────────────────────────
+  private saveTimer: any;
+  autosave() {
+    clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => {
+      this.cv.update(c => ({ ...c, metadata: { ...c.metadata, updatedAt: new Date().toISOString() } }));
+      
+    }, 800);
+  }
+
+  saveNow() {
+    if(this.cvInfo.length == 0){
+      this.cvService.saveAsCV({
+        data: this.cv()
+      }).then(res => {
+        console.log(res)
+        this.toast.show("Your first CV added!")
+      }).catch(er => this.toast.show(er))
+      return
+    }
+    this.cvInfo[0].data = this.cv();
+    this.cvService.saveCV(this.cvInfo[this.defaultVersion()]).then(res => {
+      console.log(res)
+      this.toast.show('CV saved!');
+    })
+  }
+
+  saveNew(){
+    this.cvService.saveAsCV(this.cvInfo[this.defaultVersion()]).then(res => {
+      console.log(res)
+      this.toast.show('New CV added!');
+    })
+  }
+
+  clearCv() {
+    if (!confirm('Clear all CV data? This cannot be undone.')) return; 
+    this.cv.set(defaultCV())   
+    this.toast.show('CV cleared.', 'info');
+  }
+
   // ── CV Data Helpers ────────────────────────────────────────────
+  onVersionChange(value: any) {
+    // handle either direct value or event from <select (change)="$event">
+    let v: string | number = value;
+    if (value && value.target) {
+      v = (value.target as HTMLSelectElement).value;
+    }
+    const num = typeof v === 'string' ? parseInt(v, 10) : v;
+    if (Number.isNaN(num)) return;
+    this.defaultVersion.set(num);
+    const found = this.cvInfo.find(c => c.version == this.defaultVersion());
+    if (found) this.cv.set(found.data);
+  }
   updatePersonal(field: string, value: string) {
     this.cv.update(c => ({ ...c, personalInfo: { ...c.personalInfo, [field]: value } }));
-    this.autosave();
-  }
-  updateAddress(field: string, value: string) {
-    this.cv.update(c => ({ ...c, personalInfo: { ...c.personalInfo, address: { ...c.personalInfo.address, [field]: value } } }));
     this.autosave();
   }
   updateLink(field: string, value: string) {
@@ -309,28 +354,6 @@ export class CvBuilderComponent {
   }
   onItemDragOver(e: DragEvent) { e.preventDefault(); }
 
-  // ── Autosave ──────────────────────────────────────────────────
-  private saveTimer: any;
-  autosave() {
-    clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      this.cv.update(c => ({ ...c, metadata: { ...c.metadata, updatedAt: new Date().toISOString() } }));
-      this.storage.set('jad_cv', this.cv());
-    }, 800);
-  }
-
-  saveNow() {
-    this.storage.set('jad_cv', this.cv());
-    this.toast.show('CV saved!');
-  }
-
-  clearCv() {
-    if (!confirm('Clear all CV data? This cannot be undone.')) return;
-    this.cv.set({ ...DEFAULT_CV, metadata: { ...DEFAULT_CV.metadata, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } });
-    this.storage.remove('jad_cv');
-    this.toast.show('CV cleared.', 'info');
-  }
-
   exportJson() {
     const blob = new Blob([JSON.stringify(this.cv(), null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -344,7 +367,7 @@ export class CvBuilderComponent {
     const check = (v: any) => { total++; if (v && (Array.isArray(v) ? v.length > 0 : String(v).trim())) score++; };
     check(c.personalInfo.firstName); check(c.personalInfo.lastName);
     check(c.personalInfo.email); check(c.personalInfo.phone);
-    check(c.personalInfo.headline); check(c.personalInfo.address.city);
+    check(c.personalInfo.headline); check(c.personalInfo.address);
     check(c.summary); check(c.skills.technical.length);
     check(c.experience.length); check(c.education.length);
     return Math.round((score / total) * 100);

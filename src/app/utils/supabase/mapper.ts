@@ -10,6 +10,7 @@ export function mapProfileDtoToProfile(
     firstName: dto.first_name,
     lastName: dto.last_name,
     email: dto.email,
+    location: dto.location,
     apiUrl: dto.agent_api_url,
     apiKey: dto.agent_api_key
   };
@@ -22,6 +23,7 @@ export function mapProfileToProfileDto(
     id: profile.id,
     first_name: profile.firstName,
     last_name: profile.lastName,
+    location: profile.location,
     email: profile.email,
     agent_api_url: profile.apiUrl,
     agent_api_key: profile.apiKey
