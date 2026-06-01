@@ -6,8 +6,8 @@ import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, Cv
 import { CvService } from '../utils/services/cv.service';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
-import { selectCVInfoList } from '../utils/store/profile/profile.selector';
-import { saveNewCVInfo, saveNewCVInfoSuccess, updateCVInfo } from '../utils/store/profile/profile.actions';
+import { selectCVInfoList } from '../utils/store/cv/cv.selectors';
+import { saveNewCVInfo, saveNewCVInfoSuccess, updateCVInfo } from '../utils/store/cv/cv.actions';
 import { Actions, ofType } from '@ngrx/effects';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 

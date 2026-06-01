@@ -1,7 +1,11 @@
 import { AuthState } from './auth/auth.state';
+import { CVState } from './cv/cv.state';
+import { CoverLetterState } from './cover-letter/cover-letter.state';
 import { ProfileInfoState } from './profile/profile.state';
 
 export interface AppState {
   auth: AuthState;
-  profile: ProfileInfoState
+  profile: ProfileInfoState;
+  cv: CVState;
+  coverLetter: CoverLetterState;
 }

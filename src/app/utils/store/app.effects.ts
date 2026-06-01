@@ -1,8 +1,11 @@
-import { FunctionalEffect } from "@ngrx/effects";
 import { AuthEffects } from "./auth/auth.effects";
+import { CVEffects } from "./cv/cv.effects";
+import { CoverLetterEffects } from "./cover-letter/cover-letter.effects";
 import { ProfileEffects } from "./profile/profile.effects";
 
-export const effects  = [
+export const effects = [
     AuthEffects,
-    ProfileEffects
+    ProfileEffects,
+    CVEffects,
+    CoverLetterEffects
 ];
