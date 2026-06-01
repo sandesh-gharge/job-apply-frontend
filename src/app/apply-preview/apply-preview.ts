@@ -3,6 +3,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { JobsService } from '@app/utils/services/jobs.service';
 import { ToastService } from '@app/utils/services/toast.service';
+import { CoverLetterDocInfo } from '@app/utils/entities/cover-letter';
 
 @Component({
   selector: 'app-pdf-preview',
@@ -11,7 +12,7 @@ import { ToastService } from '@app/utils/services/toast.service';
 })
 export class ApplyPreviewComponent {
   @Input() cvData: any = null;
-  @Input() coverLetterData: string = '';
+  @Input() coverLetterData: CoverLetterDocInfo | null = null;
   @Output() back = new EventEmitter<void>();
 
   private jobsService = inject(JobsService);

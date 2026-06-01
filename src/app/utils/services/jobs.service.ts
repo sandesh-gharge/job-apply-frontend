@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { JobDetails } from '@app/utils/entities/job-details';
 
 import { BackendApiService } from './backend-service/backend-api-services';
+import { CoverLetterDocInfo } from '../entities/cover-letter';
 
 const DEMO_JOBS: JobDetails[] = [
   { id: '1', companyName: 'SAP SE', role: 'Frontend Developer', companyLocation: 'Walldorf, DE', appliedDate: '2025-04-01', status: '1st Interview', salary: '75,000 €', contactName: 'Maria Schmidt', jobUrl: 'www.google.com', jobDescription: '' },
@@ -85,9 +86,10 @@ export class JobsService {
     this.jobs.update(jobs => jobs.filter(j => j.id !== id));
   }
 
-  fetchPreview(type: 'cv' | 'cl', data: any): Observable<string> {
+  fetchPreview(type: 'cv' | 'cl', data: any): Observable<any> {
     const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
-    return this.backendApi.post<string>(endpoint + '/preview', data);
+    console.log(data)
+    return this.backendApi.post<any>(endpoint + '/preview', data);
   }
 
   downloadPDF(type: 'cv' | 'cl', data: any): Observable<Blob> {
