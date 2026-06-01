@@ -6,7 +6,7 @@ import { selectCurrentUser, selectCurrentUserName } from '../utils/store/auth/au
 import { JobDetails } from '../utils/entities/job-details';
 import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
-import { CoverLetterInfo, CoverLetterSection, defaultcl } from '../utils/entities/cover-letter';
+import { CoverLetterInfo, CoverLetterSection, defaultcl, CoverLetterDocInfo } from '../utils/entities/cover-letter';
 import { selectCoverLetterInfoList } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo } from '../utils/store/profile/profile.selector';
 import { Actions, ofType } from '@ngrx/effects';
@@ -15,6 +15,7 @@ import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, updateCoverLette
 import { BackendApiService } from '../utils/services/backend-service/backend-api-services';
 import { LocalAiService } from '../utils/services/local-ai-service';
 import { firstValueFrom } from 'rxjs';
+import { CLService } from '../utils/services/cl.service';
 
 @Component({
   selector: 'app-cover-letter',
@@ -29,23 +30,29 @@ export class CoverLetterComponent implements OnInit {
   private actions$ = inject(Actions);
   private destroyRef = inject(DestroyRef);
   private aiService = inject(LocalAiService);
+  private clService = inject(CLService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
   clInfoList = this.store.selectSignal(selectCoverLetterInfoList);
-  selectedVersion = signal(0);
+  selectedVersion = this.clService.selectedVersion;
+  coverLetterInfo = this.clService.draftCoverLetter;
   userID = this.store.selectSignal(selectCurrentUser)()?.id;
 
-  meta = signal({
+  meta = signal<CoverLetterDocInfo>({
     applicantName: '',
     applicantLocation: '',
+    applicantEmail: '',
     companyName: '',
     companyLocation: '',
-    role: '',
+    contactName: '',
     date: new Date().toISOString().split('T')[0],
-    hiringManager: '',
-    jobDescription: ''
+    role: '',
+    paragraphs: [],
+    signUrl: ''
   });
+
+  jobDescription = signal('');
 
   constructor() {
     this.jobDetails.subscribe((j) => {
@@ -54,9 +61,9 @@ export class CoverLetterComponent implements OnInit {
         companyName: j?.companyName || '',
         companyLocation: j?.companyLocation || '',
         role: j?.role || '',
-        hiringManager: j?.contactName || 'Hiring Manager',
-        jobDescription: j?.jobDescription || ''
-      }))
+        contactName: j?.contactName || 'Hiring Manager'
+      }));
+      this.jobDescription.set(j?.jobDescription || '');
     });
 
     effect(() => {
@@ -66,12 +73,24 @@ export class CoverLetterComponent implements OnInit {
           {
             ...m,
             applicantName: tempInfo.firstName + ' ' + tempInfo.lastName,
-            applicantLocation: tempInfo.location
+            applicantLocation: tempInfo.location,
+            applicantEmail: tempInfo.email
           }))
-    })
+    });
+
+    effect(() => {
+      const cl = this.coverLetterInfo();
+      if (cl && cl.clData && cl.clData.sectionPrompts) {
+        this.meta.update(m => ({
+          ...m,
+          paragraphs: cl.clData.sectionPrompts.map(s => s.content)
+        }));
+      }
+    });
   }
 
   ngOnInit(): void {
+    console.log("cl_builder");
     this.actions$.pipe(
       ofType(saveNewCoverLetterInfoSuccess),
       takeUntilDestroyed(this.destroyRef)
@@ -80,13 +99,11 @@ export class CoverLetterComponent implements OnInit {
     });
 
     if (this.clInfoList().length != 0) {
-      this.coverLetterInfo.set(this.clInfoList()[this.selectedVersion()]);
+
+        this.coverLetterInfo.set(this.clInfoList()[this.selectedVersion()]);
+
     }
-    this.coverLetterInfo.update(c => ({ ...c, userId: this.userID || '' }));
-
   }
-
-  coverLetterInfo = signal<CoverLetterInfo>(defaultcl());
 
   generatingFull = signal(false);
   previewMode = signal(false);
@@ -192,12 +209,12 @@ export class CoverLetterComponent implements OnInit {
   // Common: global tone, background, skills context.
   // Section: targeted instruction for that specific paragraph.
   private buildSectionPrompt(section: CoverLetterSection): string {
-    const m = this.meta();
+    const jd = this.jobDescription();
     const common = this.coverLetterInfo().clData.commonPrompt.trim();
     let specific = common;
 
-    if (m?.jobDescription) {
-      specific = specific.replace('[job_description]', m.jobDescription);
+    if (jd) {
+      specific = specific.replace('[job_description]', jd);
     }
 
     const parts: string[] = [`${specific}`];
@@ -306,7 +323,7 @@ export class CoverLetterComponent implements OnInit {
       `Write all cover letter sections for:`,
       `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
       `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
-      `Hiring manager: ${m.hiringManager || 'Hiring Team'}.`,
+      `Hiring manager: ${m.contactName || 'Hiring Team'}.`,
       `Sections: ${titles}.`,
       `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
     ].filter(Boolean).join('\n');
@@ -333,7 +350,7 @@ export class CoverLetterComponent implements OnInit {
         `Write all cover letter sections for:`,
         `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
         `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
-        `Hiring manager: ${m.hiringManager || 'Hiring Team]'}.`,
+        `Hiring manager: ${m.contactName || 'Hiring Team]'}.`,
         `Sections: ${titles}.`,
         `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
       ].filter(Boolean).join('\n');
@@ -377,7 +394,7 @@ export class CoverLetterComponent implements OnInit {
   // ── Preview ────────────────────────────────────────────────────
   get previewText(): string {
     const m = this.meta();
-    const body = this.coverLetterInfo().clData.sectionPrompts.map(s => s.content).filter(Boolean).join('\n\n');
+    const body = m.paragraphs.filter(Boolean).join('\n\n');
     return [
       m.applicantName,
       m.applicantLocation,
@@ -387,7 +404,7 @@ export class CoverLetterComponent implements OnInit {
       m.companyName,
       m.companyLocation,
       '',
-      `Dear ${m.hiringManager || 'Hiring Team'},`,
+      `Dear ${m.contactName || 'Hiring Team'},`,
       '',
       body,
       '',

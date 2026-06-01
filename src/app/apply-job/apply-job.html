@@ -13,8 +13,7 @@
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 1 — Fetch Job Details                        -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (activeTab() === 'Fetch Job') {
-    <div class="step-panel">
+  <div class="step-panel" [class.d-none]="activeTab() !== 'Fetch Job'">
       <div class="step-header">
         <h2>Fetch Job Details</h2>
         <p class="subtitle">Paste a job posting URL to auto-load details, or type the description manually</p>
@@ -65,13 +64,11 @@
         </button>
       </div>
     </div>
-  }
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 2 — Cover Letter                             -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (activeTab() === 'Cover Letter') {
-    <div class="step-panel">
+  <div class="step-panel" [class.d-none]="activeTab() !== 'Cover Letter'">
       <app-cover-letter #coverLetter/>
 
       <div class="step-footer apply-footer">
@@ -83,13 +80,11 @@
         </div>
       </div>
     </div>
-  }
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 3 — CV Builder                               -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (activeTab() === 'CV') {
-    <div class="step-panel">
+  <div class="step-panel" [class.d-none]="activeTab() !== 'CV'">
       <app-cv-builder #cvBuilder [prefillSkills]="skillGroups()" />
       <div class="step-footer apply-footer">
         <button class="btn-back" (click)="setTab('Cover Letter')">← Back</button>
@@ -100,13 +95,11 @@
         </div>
       </div>
     </div>
-  }
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 4 — Apply Summary                            -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (activeTab() === 'PDF Preview') {
-    <div class="step-panel">
+  <div class="step-panel" [class.d-none]="activeTab() !== 'PDF Preview'">
       <app-pdf-preview [cvData]="cvPreviewData()" [coverLetterData]="coverLetterPreviewData()"
         (back)="setTab('CV')"></app-pdf-preview>
       <div class="step-footer apply-footer">
@@ -118,6 +111,5 @@
         </div>
       </div>
     </div>
-  }
 
 </div>

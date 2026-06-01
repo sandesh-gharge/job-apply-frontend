@@ -7,6 +7,8 @@ import { CoverLetterComponent } from '@app/cl-builder/cl-builder'
 import { JobDetails, SkillGroup } from '@app/utils/entities/job-details';
 import { Store } from '@ngrx/store';
 import { ApplyPreviewComponent } from '../apply-preview/apply-preview';
+import { CoverLetterDocInfo, defaultcl } from '@app/utils/entities/cover-letter';
+import { CvData } from '@app/utils/entities/cv';
 
 const SKILL_CATEGORIES = [
   'Programming Languages', 'Language Frameworks', 'Databases',
@@ -51,13 +53,8 @@ export class ApplyJobComponent {
   }
 
   // Extract cover letter data from cover letter component
-  getCoverLetterData(): string {
-    if (this.coverLetterComponent) {
-      const coverLetterInfo = this.coverLetterComponent.coverLetterInfo();
-      // Convert the cover letter info to plain text for PDF generation
-      return this.coverLetterComponent.previewText || '';
-    }
-    return '';
+  getCoverLetterData(): CoverLetterDocInfo {
+      return this.coverLetterComponent.meta();
   }
 
   activeTab = signal<TabId>('Fetch Job');
@@ -70,8 +67,8 @@ export class ApplyJobComponent {
   ];
 
   // Data for PDF preview
-  cvPreviewData = signal<any>(null);
-  coverLetterPreviewData = signal<string>('');
+  cvPreviewData = signal<CvData | null>(null);
+  coverLetterPreviewData = signal<CoverLetterDocInfo | null>(null);
 
   setTab(tab: TabId) {
     // Extract data for preview when navigating to preview tab

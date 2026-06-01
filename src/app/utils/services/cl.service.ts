@@ -1,11 +1,20 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { BackendApiService } from './backend-service/backend-api-services';
-import { CoverLetterInfo } from '@app/utils/entities/cover-letter';
+import { CoverLetterInfo, defaultcl } from '@app/utils/entities/cover-letter';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CLService {
   private backendApi = inject(BackendApiService);
+
+  // --- Draft State ---
+  draftCoverLetter = signal<CoverLetterInfo>(defaultcl());
+  selectedVersion = signal<number>(0);
+
+  clearDraft() {
+    this.draftCoverLetter.set(defaultcl());
+    this.selectedVersion.set(0);
+  }
 
   // Cover Letter Operations
 
