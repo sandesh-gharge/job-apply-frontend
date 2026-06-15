@@ -49,7 +49,8 @@ export class JobTrackerComponent {
 
   openEditModal(job: JobDetails) {
     this.editingJob.set(job);
-    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: job.appliedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '', jobDescription: job.jobDescription ?? '' });
+    const normalizedDate = job.appliedDate ? new Date(job.appliedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: normalizedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '', jobDescription: job.jobDescription ?? '' });
     this.showModal.set(true);
   }
 

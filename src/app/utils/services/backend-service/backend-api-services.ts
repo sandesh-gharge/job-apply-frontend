@@ -64,6 +64,17 @@ export class BackendApiService {
   }
 
   /**
+   * PATCH request with automatic auth header
+   */
+  patch<T>(url: string, body: any, options?: any): Observable<any> {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap(headers =>
+        this.http.patch<T>(`${this.baseUrl}${url}`, body, { headers, ...options })
+      )
+    );
+  }
+
+  /**
    * DELETE request with automatic auth header
    */
   async delete<T>(url: string) {

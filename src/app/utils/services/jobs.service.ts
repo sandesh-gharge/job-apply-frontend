@@ -104,7 +104,7 @@ export class JobsService {
    * TODO: Update URL when backend is ready.
    */
   updateJob(id: string, changes: Partial<JobDetails>): Observable<JobDetails> {
-    return this.backendApi.put<JobDetails>(`jobs/${id}`, changes).pipe(
+    return this.backendApi.patch<JobDetails>(`jobs/${id}`, changes).pipe(
       map((response: any) => ({ ...changes, id } as JobDetails))
     );
   }
@@ -162,7 +162,7 @@ export class JobsService {
       throw new Error('Missing required fields. Please fill in all required information before applying.');
     }
 
-    return this.backendApi.post<any>('jobs', { jd: { ...jobDetails, user_id: this.userid()}, cv_data: cvData, cover_letter_data: coverLetterData } );
+    return this.backendApi.post<any>('jobs', { jd: { ...jobDetails, user_id: this.userid() }, cv_data: cvData, cover_letter_data: coverLetterData });
   }
 
   /**
