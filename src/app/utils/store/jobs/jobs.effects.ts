@@ -17,7 +17,8 @@ import {
   deleteJob,
   deleteJobSuccess,
   deleteJobFailure,
-  applyAndSaveJob
+  applyAndSaveJob,
+  applyJob
 } from './jobs.actions';
 
 @Injectable()
@@ -72,7 +73,7 @@ export class JobsEffects {
       switchMap(({ job }) =>
         this.jobsService.createJob(job).pipe(
           map(savedJob => {
-            this.toastService.show('Application added!');
+            this.toastService.show('Application successfully saved to database!');
             return addJobSuccess({ job: savedJob });
           }),
           catchError((error: any) => {
@@ -83,6 +84,23 @@ export class JobsEffects {
       )
     )
   );
+
+  applyJob$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(applyJob),
+      switchMap(() =>
+        this.jobsService.applyAndSaveJob().pipe(
+          map((savedJob) => {
+            this.toastService.show('Application applied successfully!');
+            return addJobSuccess({ job: savedJob });
+          }),
+          catchError((error: any) => {
+            this.toastService.show('Failed to apply job: ' + (error?.message ?? 'Unknown error'), 'error');
+            return of(addJobFailure({ error: error?.message ?? 'Failed to apply job' }));
+          })
+        ))
+    )
+  )
 
   updateJob$ = createEffect(() =>
     this.actions$.pipe(
