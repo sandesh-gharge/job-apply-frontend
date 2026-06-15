@@ -141,7 +141,7 @@ export class JobsService {
     };
   }
 
-  applyAndSaveJob(cvData: CvData, coverLetterData: CoverLetterDocInfo): Observable<any> {
+  applyAndSaveJob(cvData?: CvData, coverLetterData?: CoverLetterDocInfo): Observable<any> {
     const jobDetails = this.jobDetails.value;
     if (!jobDetails) throw new Error('No job details found.');
 
@@ -162,7 +162,18 @@ export class JobsService {
       throw new Error('Missing required fields. Please fill in all required information before applying.');
     }
 
-    return this.backendApi.post<any>('jobs', { jd: { ...jobDetails, user_id: this.userid() }, cv_data: cvData, cover_letter_data: coverLetterData });
+    const { id, ...jobDetailsWithoutId } = jobDetails;
+
+    if (cvData && coverLetterData)
+      return this.backendApi.post<any>('jobs', {
+        jd: { ...jobDetailsWithoutId, userId: this.userid(), status: 'Applied' },
+        cv_data: cvData,
+        cover_letter_data: coverLetterData
+      });
+    else
+      return this.backendApi.post<any>('jobs/upsert', 
+        { ...jobDetailsWithoutId, userId: this.userid(), status: 'Applied' }
+      );
   }
 
   /**

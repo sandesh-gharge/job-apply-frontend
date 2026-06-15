@@ -33,6 +33,10 @@ export const addJob = createAction(
   props<{ job: JobDetails }>()
 );
 
+export const applyJob = createAction(
+  '[Jobs] Apply Job'
+);
+
 export const addJobSuccess = createAction(
   '[Jobs] Add Job Success',
   props<{ job: JobDetails }>()

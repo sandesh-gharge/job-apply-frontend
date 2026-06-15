@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import { ApplyPreviewComponent } from '../apply-preview/apply-preview';
 import { CoverLetterDocInfo, defaultcl } from '@app/utils/entities/cover-letter';
 import { CvData } from '@app/utils/entities/cv';
+import { applyJob } from '@app/utils/store/jobs/jobs.actions';
 
 const SKILL_CATEGORIES = [
   'Programming Languages', 'Language Frameworks', 'Databases',
@@ -37,9 +38,8 @@ export class ApplyJobComponent {
   // ViewChild references to access child component data
   @ViewChild('cvBuilder') cvBuilder!: CvBuilderComponent;
   @ViewChild('coverLetter') coverLetterComponent!: CoverLetterComponent;
-  @ViewChild(ApplyPreviewComponent) applyPreviewComponent!: ApplyPreviewComponent;
 
-  loading = signal(false);
+
 
   ngAfterViewInit() {
     // ViewChild is available after view initialization
@@ -55,7 +55,7 @@ export class ApplyJobComponent {
 
   // Extract cover letter data from cover letter component
   getCoverLetterData(): CoverLetterDocInfo {
-      return this.coverLetterComponent.meta();
+    return this.coverLetterComponent.meta();
   }
 
   activeTab = signal<TabId>('Fetch Job');
@@ -85,20 +85,8 @@ export class ApplyJobComponent {
     this.coverLetterPreviewData.set(this.getCoverLetterData());
   }
 
-  // Mark application as applied
   async markAsApplied() {
-    this.applyLoading.set(true);
-    try {
-      if (this.applyPreviewComponent) {
-        await this.applyPreviewComponent.applyAndSave();
-      } else {
-        // Fallback
-        this.jobsService.updateField('status', 'Applied');
-        this.toast.show('Application marked as applied locally.');
-      }
-    } finally {
-      this.applyLoading.set(false);
-    }
+    this.store.dispatch(applyJob());
   }
 
 
@@ -153,12 +141,7 @@ export class ApplyJobComponent {
       .subscribe({
         next: details => {
           console.log(details)
-          const now = new Date();
-          const appliedDate = [
-            String(now.getDate()).padStart(2, '0'),
-            String(now.getMonth() + 1).padStart(2, '0'),
-            String(now.getFullYear())
-          ].join('-');
+          const appliedDate = new Date().toISOString().split('T')[0];
 
           this.jobsService.setJobDetails({
             ...details,
@@ -174,8 +157,6 @@ export class ApplyJobComponent {
       }).add(() => {
         this.parseLoading.set(false);
       });
-  }
-  applyJob() {
   }
 
 }

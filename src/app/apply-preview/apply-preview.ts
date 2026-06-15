@@ -8,6 +8,7 @@ import { CLService } from '@app/utils/services/cl.service';
 import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
 import { CvService } from '@app/utils/services/cv.service';
+import { addJob } from '@app/utils/store/jobs/jobs.actions';
 
 @Component({
   selector: 'app-pdf-preview',
@@ -126,20 +127,6 @@ export class ApplyPreviewComponent {
     } catch (error) {
       console.error(`Error downloading ${type} PDF:`, error);
       this.toast.show(`Failed to download ${type === 'cv' ? 'CV' : 'Cover Letter'} PDF`, 'error');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async applyAndSave() {
-    this.loading.set(true);
-    try {
-
-      await this.jobsService.applyAndSaveJob(this.cvInfo().cvData, this.coverLetterData);
-      this.toast.show('Application successfully saved to database!');
-    } catch (error: any) {
-      console.error('Failed to save application:', error);
-      this.toast.show(error?.message || 'Failed to save application. Please try again.', 'error');
     } finally {
       this.loading.set(false);
     }
