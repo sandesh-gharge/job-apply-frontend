@@ -53,9 +53,9 @@ export class CvBuilderComponent implements OnInit {
   @Input() set prefillSkills(groups: Array<{ category: string; skills: string[] }>) {
     if (!groups?.length) return;
     const cv = this.cv().cvData;
-    const tech = groups.find(g => g.category === 'Frontend')?.skills ?? [];
-    const fw = groups.find(g => g.category === 'Backend')?.skills ?? [];
-    const tools = [
+    const frontend = groups.find(g => g.category === 'Frontend')?.skills ?? [];
+    const backend = groups.find(g => g.category === 'Backend')?.skills ?? [];
+    const devops = [
       ...(groups.find(g => g.category === 'DevOps Tools')?.skills ?? []),
       ...(groups.find(g => g.category === 'Monitoring Tools')?.skills ?? []),
       ...(groups.find(g => g.category === 'Cloud Platforms')?.skills ?? []),
@@ -66,9 +66,9 @@ export class CvBuilderComponent implements OnInit {
         ...c.cvData,
         skills: {
           ...c.cvData.skills,
-          technical: [...new Set([...c.cvData.skills.technical, ...tech])],
-          frameworks: [...new Set([...c.cvData.skills.frameworks, ...fw])],
-          tools: [...new Set([...c.cvData.skills.tools, ...tools])],
+          frontend: [...new Set([...c.cvData.skills.frontend, ...frontend])],
+          backend: [...new Set([...c.cvData.skills.backend, ...backend])],
+          devops: [...new Set([...c.cvData.skills.devops, ...devops])],
         },
       }
     }));
@@ -205,15 +205,6 @@ export class CvBuilderComponent implements OnInit {
       arr.splice(idx, 1);
       return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
     });
-  }
-  addLanguage() {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, languages: [...c.cvData.skills.languages, { id: makeId(), language: '', proficiency: 'Intermediate' }] } } }));
-  }
-  removeLanguage(id: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, languages: c.cvData.skills.languages.filter(l => l.id !== id) } } }));
-  }
-  updateLanguage(id: string, field: 'language' | 'proficiency', value: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, languages: c.cvData.skills.languages.map(l => l.id === id ? { ...l, [field]: value } : l) } } }));
   }
 
   // ── Experience ─────────────────────────────────────────────────
@@ -427,7 +418,7 @@ export class CvBuilderComponent implements OnInit {
     check(c.personalInfo.firstName); check(c.personalInfo.lastName);
     check(c.personalInfo.email); check(c.personalInfo.phone);
     check(c.personalInfo.headline); check(c.personalInfo.address);
-    check(c.summary); check(c.skills.technical.length);
+    check(c.summary); check(c.skills.frontend); check(c.skills.backend); check(c.skills.devops);
     check(c.experience.length); check(c.education.length);
     return Math.round((score / total) * 100);
   });
@@ -439,7 +430,7 @@ export class CvBuilderComponent implements OnInit {
       case 'summary': return !!c.summary;
       case 'experience': return c.experience.length > 0;
       case 'education': return c.education.length > 0;
-      case 'skills': return c.skills.technical.length > 0 || c.skills.soft.length > 0 || c.skills.frameworks.length > 0 || c.skills.tools.length > 0;
+      case 'skills': return c.skills.frontend.length > 0 || c.skills.backend.length > 0 || c.skills.devops.length > 0;
       case 'projects': return c.projects.length > 0;
       case 'certifications': return c.certifications.length > 0;
       case 'awards': return c.awards.length > 0;
