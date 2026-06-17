@@ -178,17 +178,16 @@
             @if (sec.id === 'skills') {
               <div class="skills-builder">
                 @for (def of [
-                  {f:'technical',  label:'Technical Skills',       ph:'e.g. TypeScript'},
-                  {f:'frameworks', label:'Frameworks & Libraries',  ph:'e.g. Angular'},
-                  {f:'tools',      label:'Tools',                   ph:'e.g. Docker'},
-                  {f:'soft',       label:'Soft Skills',             ph:'e.g. Leadership'}
+                  {f:'frontend',  label:'Frontend',       ph:'e.g. React, TypeScript'},
+                  {f:'backend',   label:'Backend',        ph:'e.g. Node.js, Python'},
+                  {f:'devops',    label:'DevOps / Cloud', ph:'e.g. Docker, Kubernetes'}
                 ]; track def.f) {
                   <div class="skill-row">
                     <div class="skill-row-label">{{ def.label }}</div>
                     <div class="chips-wrap">
                       @for (s of $any(cv().cvData.skills)[def.f]; track s; let si = $index) {
                         <span class="cv-chip">{{ s }}
-                          @if (editMode()) { <button class="chip-x" (click)="removeSkillFromList($any(def.f), si)">✕</button> }
+                          <button class="chip-x" (click)="removeSkillFromList($any(def.f), si)">✕</button>
                         </span>
                       }
                       <div class="chip-add-row">
@@ -201,21 +200,6 @@
                     </div>
                   </div>
                 }
-                <div class="skill-row">
-                  <div class="skill-row-label">Languages</div>
-                  <div class="lang-list">
-                    @for (lang of cv().cvData.skills.languages; track lang.id) {
-                      <div class="lang-row">
-                        <input class="lang-input" type="text" [ngModel]="lang.language" (ngModelChange)="updateLanguage(lang.id,'language',$event)" placeholder="e.g. German" />
-                        <select class="lang-select" [ngModel]="lang.proficiency" (ngModelChange)="updateLanguage(lang.id,'proficiency',$event)">
-                          @for (p of proficiencyLevels; track p) { <option [value]="p">{{ p }}</option> }
-                        </select>
-                        <button class="btn-x sm" (click)="removeLanguage(lang.id)">✕</button>
-                      </div>
-                    }
-                    <button class="btn-add-sub" (click)="addLanguage()">+ Add Language</button>
-                  </div>
-                </div>
               </div>
             }
 

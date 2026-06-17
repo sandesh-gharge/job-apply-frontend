@@ -12,14 +12,13 @@ import { CvData } from '@app/utils/entities/cv';
 import { applyJob } from '@app/utils/store/jobs/jobs.actions';
 
 const SKILL_CATEGORIES = [
-  'Programming Languages', 'Language Frameworks', 'Databases',
-  'Monitoring Tools', 'DevOps Tools', 'Cloud Platforms', 'Other Skills',
+  'Frontend', 'Backend', 'DevOps'
 ];
 
 const CAT_ICONS: Record<string, string> = {
-  'Programming Languages': '⌨', 'Language Frameworks': '⚙',
-  'Databases': '◫', 'Monitoring Tools': '◉',
-  'DevOps Tools': '⬡', 'Cloud Platforms': '☁', 'Other Skills': '◆',
+  Frontend: '🌐',
+  Backend: '🧠',
+  DevOps: '⚙️',
 };
 
 type TabId = 'Fetch Job' | 'Cover Letter' | 'CV' | 'PDF Preview';
