@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@app/utils/services/auth.service';
 import { BackendApiService } from '@app/utils/services/backend-service/backend-api-services';
@@ -16,7 +16,22 @@ export class AuthCallback {
   private backendApi = inject(BackendApiService);
   private authService = inject(AuthService);
 
+  error = signal<string | null>(null);
+
   async ngOnInit() {
+
+    const params = new URLSearchParams(
+      window.location.hash.substring(1)
+    );
+
+    const accessToken = params.get('access_token');
+
+    if(accessToken)
+      sessionStorage.setItem("access_token", accessToken);
+    else if(params.get('error')){
+      this.error.set("Token Expired");
+      return;
+    }
 
     const {
       data: { session }
@@ -31,7 +46,7 @@ export class AuthCallback {
       this.backendApi.get<any>(`profile/${session.user.id}`)
     );
 
-      console.log('User profile:', profile);
+    console.log('User profile:', profile);
 
     if (!profile?.onboarding_completed) {
       this.router.navigate(['/set-password']);
