@@ -5,9 +5,9 @@ export interface CvLinks { linkedin: string; github: string; portfolio: string; 
 export interface CvPersonalInfo {
   firstName: string; lastName: string; headline: string;
   email: string; phone: string;
-  address: string; links: CvLinks;
+  address: string; links: CvLinks; languages: CvLanguage[];
 }
-export interface CvLanguage { id: string; language: string; proficiency: string; }
+export interface CvLanguage { language: string; proficiency: string; }
 export interface CvSkills {
   frontend: string[]; backend: string[]; devops: string[];
 }
@@ -98,6 +98,7 @@ export const defaultCV = (): CVInfo => ({
         portfolio: '',
         website: ''
       },
+      languages: []
     },
     summary: '',
     skills: {

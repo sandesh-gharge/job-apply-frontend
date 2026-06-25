@@ -78,11 +78,10 @@ export class ApplyPreviewComponent {
     if (this.loading()) return;
 
     this.loading.set(true);
-    console.log(`Fetching ${type} preview with data:`, type === 'cv' ? this.cvInfo().cvData : this.coverLetterData);
     const data = type === 'cv' ? this.cvInfo().cvData : this.coverLetterData;
 
     try {
-      const html = await firstValueFrom(this.jobsService.fetchPreview(type, data));
+      const html = await firstValueFrom(this.jobsService.fetchPreview(type, data, this.profileInfo()?.id));
       if (!html) throw new Error('No preview content returned');
       this.clHtml.set(type === 'cl' ? html : this.clHtml());
       this.cvHtml.set(type === 'cv' ? html : this.cvHtml());
@@ -108,22 +107,23 @@ export class ApplyPreviewComponent {
     this.loading.set(true);
     const data = type === 'cv' ? this.cvHtml() : this.clHtml();
 
+    const name = [this.profileInfo()?.firstName,this.profileInfo()?.lastName].join("_");
+
     try {
       const blob = await firstValueFrom(this.jobsService.downloadPDF(type, { html : data }));
       if (!blob) throw new Error('No PDF content returned');
 
-      const url = window.URL.createObjectURL(blob);
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = type === 'cv' ? 'cv-preview.pdf' : 'cover-letter-preview.pdf';
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.open(link.href, '_blank');
-      });
+      link.download = type === 'cv' ? [name, "CV", ".pdf"].join("_") : [name, "CoverLetter", ".pdf"].join("_");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
 
       this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastDownloadedCv : this.translate.t().applyPreview.toastDownloadedCl);
     } catch (error) {

@@ -37,7 +37,7 @@
 
   <!-- ── Sections ─────────────────────────────────────────────── -->
   <div class="sections-list">
-    @for (sec of visibleSections(); track sec.id) {
+    @for (sec of sections(); track sec.id) {
       <div class="section-wrapper"
         [class.drag-over]="dragOverId() === sec.id"
         [class.section-excluded]="!sec.include"
@@ -91,9 +91,6 @@
                   <label>{{ translate.t().cvBuilder.personalInfo.phone }}</label>
                   <input type="tel" [ngModel]="cv().cvData.personalInfo.phone" (ngModelChange)="updatePersonal('phone',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderPhone" />
                 </div>
-              </div>
-              <div class="sub-label">{{ translate.t().cvBuilder.personalInfo.address }}</div>
-              <div class="fields-grid">
                 <div class="field">
                   <label>{{ translate.t().cvBuilder.personalInfo.address }}</label>
                   <input type="text" [ngModel]="cv().cvData.personalInfo.address" (ngModelChange)="updatePersonal('address',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderAddress" />
@@ -116,6 +113,34 @@
                 <div class="field">
                   <label>{{ translate.t().cvBuilder.personalInfo.website }}</label>
                   <input type="url" [ngModel]="cv().cvData.personalInfo.links.website" (ngModelChange)="updateLink('website',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderWebsite" />
+                </div>
+              </div>
+              <div class="sub-label">{{ translate.t().cvBuilder.personalInfo.languages }}</div>
+              <div class="lang-list">
+                <div class="chips-wrap">
+                  @for (lang of cv().cvData.personalInfo.languages || []; track lang.language + $index; let li = $index) {
+                    <span class="cv-chip">
+                      {{ lang.language }} ({{ lang.proficiency }})
+                      <button class="chip-x" (click)="removeLanguage(li)">✕</button>
+                    </span>
+                  }
+                </div>
+                <div class="lang-row">
+                  <input type="text" class="lang-input"
+                    [placeholder]="translate.t().cvBuilder.personalInfo.placeholderLanguageName || 'Language (e.g. English)'"
+                    [ngModel]="newLanguageName()"
+                    (ngModelChange)="newLanguageName.set($event)"
+                    (keydown.enter)="addLanguage(); $event.preventDefault()" />
+                  <select class="lang-select"
+                    [ngModel]="newLanguageProficiency()"
+                    (ngModelChange)="newLanguageProficiency.set($event)"
+                    (keydown.enter)="addLanguage(); $event.preventDefault()">
+                    <option value="" disabled selected>{{ translate.t().cvBuilder.personalInfo.placeholderLanguageLevel || 'Select Level' }}</option>
+                    @for (level of proficiencyLevels; track level) {
+                      <option [value]="level">{{ level }}</option>
+                    }
+                  </select>
+                  <button class="btn-chip-add" (click)="addLanguage(); $event.preventDefault()">+</button>
                 </div>
               </div>
             }
