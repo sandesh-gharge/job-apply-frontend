@@ -60,8 +60,8 @@ export class ProfileService {
     getImageUrl(fileName: string, expiresIn = 3600): Promise<any> {
         return firstValueFrom(
             this.backendApi.get<any>(`profile/${this.userId()}/image-url?fileName=${encodeURIComponent(fileName)}&bucket=${encodeURIComponent(this.bucket)}&expiresIn=${expiresIn}`)
-        ).then((data: any) => {
-            return data?.signed_url ?? null;
+        ).then((signed_url: any) => {
+            return signed_url ?? null;
         }).catch((error: any) => {
             console.error(`[ProfileService] Failed to get signed URL for ${fileName}:`, error.message);
             return null;

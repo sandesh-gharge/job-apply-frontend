@@ -3,6 +3,11 @@ import { ProfileInfoState } from "./profile.state";
 
 export const selectProfileState = createFeatureSelector<ProfileInfoState>('profile');
 
+export const selectProfileImageUrl = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.profileImageUrl
+)
+
 export const selectProfileInfo = createSelector(
     selectProfileState,
     (state: ProfileInfoState) => state.profileInfo

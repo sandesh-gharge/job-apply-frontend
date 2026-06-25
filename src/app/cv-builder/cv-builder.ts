@@ -9,12 +9,13 @@ import { selectCurrentCV, selectCVInfoList } from '../utils/store/cv/cv.selector
 import { saveNewCVInfo, saveNewCVInfoSuccess, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
 import { CvService } from '@app/utils/services/cv.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { selectProfileImageUrl } from '@app/utils/store/profile/profile.selector';
 
 
 
 function makeId() { return Math.random().toString(36).slice(2, 9); }
 
-const PROFICIENCY_LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper-Intermediate', 'Advanced', 'Native'];
+const PROFICIENCY_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'];
 
 @Component({
   selector: 'app-cv-builder',
@@ -31,7 +32,7 @@ export class CvBuilderComponent implements OnInit {
 
   cv = this.cvService.draftCV;
   cvInfoList = this.store.selectSignal(selectCVInfoList);
-  
+  profileImageUrl = this.store.selectSignal(selectProfileImageUrl)
   userID = this.store.selectSignal(selectUserID);
 
   hasLoadedInitialData = false;
@@ -93,6 +94,8 @@ export class CvBuilderComponent implements OnInit {
   // Inline add inputs
   newSkillInputs: Record<string, string> = {};
   newInterest = signal('');
+  newLanguageName = signal('');
+  newLanguageProficiency = signal('');
   newTechInput = signal('');
   newSoftInput = signal('');
   newToolInput = signal('');
@@ -128,22 +131,13 @@ export class CvBuilderComponent implements OnInit {
     { id: 'skills', label: 'Skills', icon: '⚡', include: true, collapsed: false },
     { id: 'projects', label: 'Projects', icon: '◈', include: true, collapsed: true },
     { id: 'certifications', label: 'Certifications', icon: '🏅', include: false, collapsed: true },
-    { id: 'awards', label: 'Awards', icon: '★', include: false, collapsed: true },
-    { id: 'publications', label: 'Publications', icon: '📄', include: false, collapsed: true },
-    { id: 'volunteer', label: 'Volunteer Experience', icon: '🤝', include: false, collapsed: true },
+    { id: 'awards', label: 'Awards', icon: '★', include: true, collapsed: true },
+    { id: 'publications', label: 'Publications', icon: '📄', include: true, collapsed: true },
+    { id: 'volunteer', label: 'Volunteer Experience', icon: '🤝', include: true, collapsed: true },
     { id: 'interests', label: 'Interests', icon: '✦', include: false, collapsed: true },
     { id: 'references', label: 'References', icon: '👥', include: false, collapsed: true },
     { id: 'custom', label: 'Custom Sections', icon: '＋', include: false, collapsed: true },
   ]);
-
-  // Computed sections with dynamic include flags based on data availability
-  visibleSections = computed(() => {
-    const sections = this.sections();
-    return sections.map(sec => ({
-      ...sec,
-      include: this.sectionHasData(sec.id)
-    }));
-  });
 
   proficiencyLevels = PROFICIENCY_LEVELS;
 
@@ -223,6 +217,52 @@ export class CvBuilderComponent implements OnInit {
   }
   updateSummary(value: string) {
     this.cv.update(c => ({ ...c, cvData: { ...c.cvData, summary: value } }));
+  }
+
+  addLanguage() {
+    const name = this.newLanguageName().trim();
+    const prof = this.newLanguageProficiency();
+    if (!name || !prof) return;
+
+    this.cv.update(c => {
+      const personalInfo = c.cvData.personalInfo;
+      const languages = personalInfo.languages ? [...personalInfo.languages] : [];
+      if (languages.some(l => l.language.toLowerCase() === name.toLowerCase())) {
+        this.toast.show('Language already added!', 'error');
+        return c;
+      }
+      return {
+        ...c,
+        cvData: {
+          ...c.cvData,
+          personalInfo: {
+            ...personalInfo,
+            languages: [...languages, { language: name, proficiency: prof }]
+          }
+        }
+      };
+    });
+
+    this.newLanguageName.set('');
+    this.newLanguageProficiency.set('');
+  }
+
+  removeLanguage(idx: number) {
+    this.cv.update(c => {
+      const personalInfo = c.cvData.personalInfo;
+      const languages = personalInfo.languages ? [...personalInfo.languages] : [];
+      languages.splice(idx, 1);
+      return {
+        ...c,
+        cvData: {
+          ...c.cvData,
+          personalInfo: {
+            ...personalInfo,
+            languages
+          }
+        }
+      };
+    });
   }
 
   // ── Skills ────────────────────────────────────────────────────
@@ -450,6 +490,7 @@ export class CvBuilderComponent implements OnInit {
     check(c.personalInfo.firstName); check(c.personalInfo.lastName);
     check(c.personalInfo.email); check(c.personalInfo.phone);
     check(c.personalInfo.headline); check(c.personalInfo.address);
+    check(c.personalInfo.languages);
     check(c.summary); check(c.skills.frontend); check(c.skills.backend); check(c.skills.devops);
     check(c.experience.length); check(c.education.length);
     return Math.round((score / total) * 100);

@@ -117,10 +117,9 @@ export class JobsService {
     return this.backendApi.delete<void>(`jobs/${id}`);
   }
 
-  fetchPreview(type: 'cv' | 'cl', data: any): Observable<any> {
+  fetchPreview(type: 'cv' | 'cl', data: any, userId?: string): Observable<any> {
     const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
-    console.log(data)
-    return this.backendApi.post<any>(endpoint + '/preview', data);
+    return this.backendApi.post<any>(endpoint + '/preview/' + userId, data);
   }
 
   downloadPDF(type: 'cv' | 'cl', data: any): Observable<Blob> {
