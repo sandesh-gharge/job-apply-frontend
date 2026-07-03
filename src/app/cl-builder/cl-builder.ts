@@ -51,6 +51,21 @@ export class CoverLetterComponent implements OnInit {
 
   jobDescription = signal('');
 
+  /** Tracks which section IDs are collapsed */
+  collapsedSections = signal<Set<string>>(new Set());
+
+  toggleSection(id: string): void {
+    this.collapsedSections.update(set => {
+      const next = new Set(set);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+  }
+
+  isSectionCollapsed(id: string): boolean {
+    return this.collapsedSections().has(id);
+  }
+
   constructor() {
     this.jobDetails.subscribe((j) => {
       this.meta.update(m => ({

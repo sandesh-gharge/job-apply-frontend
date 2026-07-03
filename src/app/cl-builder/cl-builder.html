@@ -95,10 +95,13 @@
     </div>
 
     @for (section of coverLetterInfo().clData.sectionPrompts; track section.id) {
-      <div class="section-card">
+      <div class="section-card" [class.collapsed]="isSectionCollapsed(section.id)">
 
-        <!-- Section title row -->
+        <!-- Section title row (also acts as collapse toggle) -->
         <div class="section-top">
+          <button class="btn-collapse" (click)="toggleSection(section.id)" [title]="isSectionCollapsed(section.id) ? 'Expand' : 'Collapse'">
+            <span class="chevron" [class.rotated]="isSectionCollapsed(section.id)">▾</span>
+          </button>
           <input class="section-title-input"
             [ngModel]="section.title"
             (ngModelChange)="updateSection(section.id, 'title', $event)"
@@ -106,31 +109,36 @@
           <button class="btn-remove" (click)="removeSection(section.id)" title="Remove section">✕</button>
         </div>
 
-        <!-- Generated content -->
-        <textarea class="section-content"
-          [ngModel]="section.content"
-          (ngModelChange)="updateSection(section.id, 'content', $event)"
-          [placeholder]="translate.t().clBuilder.sectionContentPlaceholder"
-          rows="4">
-        </textarea>
+        <!-- Collapsible body -->
+        @if (!isSectionCollapsed(section.id)) {
+          <!-- Generated content -->
+          <textarea class="section-content"
+            [ngModel]="section.content"
+            (ngModelChange)="updateSection(section.id, 'content', $event)"
+            [placeholder]="translate.t().clBuilder.sectionContentPlaceholder"
+            rows="5">
+          </textarea>
 
-        <!-- Section-specific prompt + generate button -->
-        <div class="section-ai-row">
-          <div class="section-prompt-wrap">
-            <span class="prompt-label">{{ translate.t().clBuilder.sectionPromptLabel }}</span>
-            <input class="prompt-input"
-              [ngModel]="section.sectionPrompt"
-              (ngModelChange)="updateSection(section.id, 'sectionPrompt', $event)"
-              [placeholder]="translate.t().clBuilder.sectionPromptPlaceholder" />
+          <!-- Section-specific prompt + generate button -->
+          <div class="section-ai-row">
+            <div class="section-prompt-wrap">
+              <span class="prompt-label">{{ translate.t().clBuilder.sectionPromptLabel }}</span>
+              <textarea class="prompt-textarea"
+                [ngModel]="section.sectionPrompt"
+                (ngModelChange)="updateSection(section.id, 'sectionPrompt', $event)"
+                [placeholder]="translate.t().clBuilder.sectionPromptPlaceholder"
+                rows="3">
+              </textarea>
+            </div>
+            <button class="btn-ai"
+              (click)="generateSection(section.id)"
+              [disabled]="section.loading"
+              [title]="'Common prompt + section prompt will be sent together'">
+              @if (section.loading) { <span class="spinner-sm"></span> {{ translate.t().clBuilder.generating }} }
+              @else { {{ translate.t().clBuilder.generateSectionBtn }} }
+            </button>
           </div>
-          <button class="btn-ai"
-            (click)="generateSection(section.id)"
-            [disabled]="section.loading"
-            [title]="'Common prompt + section prompt will be sent together'">
-            @if (section.loading) { <span class="spinner-sm"></span> {{ translate.t().clBuilder.generating }} }
-            @else { {{ translate.t().clBuilder.generateSectionBtn }} }
-          </button>
-        </div>
+        }
 
       </div>
     }
