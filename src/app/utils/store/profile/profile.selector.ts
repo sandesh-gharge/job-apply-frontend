@@ -27,3 +27,8 @@ export const selectProfileError = createSelector(
     selectProfileState,
     (state: ProfileInfoState) => state.error
 );
+
+export const selectProfileRole = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.role
+);

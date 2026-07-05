@@ -3,9 +3,9 @@ import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { autoLogin, changePassword, login, loginFailure, loginSuccess, logout } from "./auth.actions";
 import { AuthService } from "../../services/auth.service";
 import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
-import { User } from "../../entities/user";
+import { ProfileInfo, User } from "../../entities/user";
 import { Router } from "@angular/router";
-import { loadProfileInfo } from "../profile/profile.actions";
+import { loadProfileInfo, loadProfileInfoSuccess } from "../profile/profile.actions";
 
 
 @Injectable()
@@ -26,11 +26,17 @@ export class AuthEffects {
                         const userEmail = response.user?.email || email;
                         const name = userEmail.split('@')[0].replace(/[._]/g, ' ');
                         const id = response.user?.id || '';
-                        return of(loginSuccess({
+                        const profile_info = response.profile_info;
+                        return of(
+                        loadProfileInfoSuccess( {profileInfo : profile_info}),
+                        loginSuccess({
                             user: { email: userEmail, name, id },
                             token: response.access_token || '',
+                            refresh_token: response.refresh_token || '',
                             redirect: true
-                        }));
+                        })
+                        
+                    );
                     }),
                     catchError(error => {
                         return of(loginFailure({ error: error?.detail || "Login failed" }));
@@ -43,10 +49,11 @@ export class AuthEffects {
     loginSuccess$ = createEffect(() =>
         this.actions$.pipe(
             ofType(loginSuccess),
-            tap(({ user, token, redirect }) => {
+            tap(({ user, token, refresh_token, redirect }) => {
                 // Here you can perform side effects like navigation or showing a success message
                 sessionStorage.setItem('user', JSON.stringify(user));
                 sessionStorage.setItem('access_token', token);
+                sessionStorage.setItem('refresh_token', refresh_token);
                 if (redirect !== false) {
                     this.router.navigate(['/home']);
                 }
@@ -54,13 +61,6 @@ export class AuthEffects {
 
         ), { dispatch: false }
     );
-
-    loadProfileOnLogin$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(loginSuccess),
-      map(() => loadProfileInfo())
-    )
-  );
 
     loginFailure$ = createEffect(() =>
         this.actions$.pipe(
@@ -99,7 +99,7 @@ export class AuthEffects {
                     if (userStr && token) {
                         const user = JSON.parse(userStr);
                         console.log("Auto-login successful from sessionStorage");
-                        return of(loginSuccess({ user, token, redirect: false }));
+                        return of(loginSuccess({ user, token, refresh_token: sessionStorage.getItem('refresh_token') || '', redirect: false }));
                     } else {
                         console.log("No session found in sessionStorage for auto-login");
                         return of(logout());

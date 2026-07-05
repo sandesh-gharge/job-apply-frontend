@@ -8,8 +8,8 @@ import { SetPassword } from './set-password/set-password';
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'home', component: HomeComponent, canActivate: [authGuard] },
+  { path: 'home', component: HomeComponent, canActivate: [authGuard], data: { roles: ['admin', 'user', 'guest'] } },
   { path: 'auth/callback', component: AuthCallback },
-  { path: 'set-password', component: SetPassword, canActivate: [authGuard] },
+  { path: 'set-password', component: SetPassword, canActivate: [authGuard], data: { roles: ['admin', 'user', 'guest'] } },
   { path: '**', redirectTo: '/login' }
 ];

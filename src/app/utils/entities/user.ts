@@ -1,3 +1,5 @@
+import { Role } from "../services/auth.service";
+
 export interface User {
   id: string;
   email: string;
@@ -15,4 +17,5 @@ export interface ProfileInfo {
   modelName: string;
   profileImageUrl?: string;
   signatureImageUrl?: string;
+  role: Role;
 }

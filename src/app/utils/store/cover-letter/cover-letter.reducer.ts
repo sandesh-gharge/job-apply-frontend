@@ -14,7 +14,7 @@ import {
 
 export const initialCoverLetterState: CoverLetterState = {
     coverLetterInfoList: [],
-    selectedVersion: '',
+    selectedVersion: 0,
     loading: false,
     error: null
 };
@@ -31,7 +31,7 @@ export const coverLetterReducer = createReducer(
     on(loadCoverLetterInfoSuccess, (state, { coverLetterInfoList }) => ({
         ...state,
         coverLetterInfoList,
-        selectedVersion: coverLetterInfoList.length > 0 ? coverLetterInfoList[0].version : '',
+        selectedVersion: coverLetterInfoList.length > 0 ? coverLetterInfoList[0].version : 0,
         loading: false
     })),
 

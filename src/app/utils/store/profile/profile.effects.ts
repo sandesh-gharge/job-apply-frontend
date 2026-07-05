@@ -5,6 +5,8 @@ import { inject, Injectable } from "@angular/core";
 import { ProfileService } from "../../services/profile.service";
 import { ProfileInfo } from "../../entities/user";
 import { ToastService } from "@app/utils/services/toast.service";
+import { loginSuccess } from "../auth/auth.actions";
+import { AuthService } from "@app/utils/services/auth.service";
 
 
 @Injectable()
@@ -12,6 +14,17 @@ export class ProfileEffects {
     private actions$ = inject(Actions);
     private profileService = inject(ProfileService);
     private toastService = inject(ToastService);
+
+    /**
+     
+     
+    loadProfileOnLogin$ = createEffect(() =>
+        this.actions$.pipe(
+          ofType(loginSuccess),
+          map(() => loadProfileInfo())
+        )
+    );
+    */
 
     loadProfileInfo$ = createEffect(() =>
         this.actions$.pipe(

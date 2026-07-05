@@ -51,5 +51,5 @@ export const saveNewCoverLetterInfoFailure = createAction(
 
 export const selectCoverLetterVersion = createAction(
     '[Cover Letter] Select Cover Letter Version',
-    props<{ version: string }>()
+    props<{ version: number }>()
 );

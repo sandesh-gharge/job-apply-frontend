@@ -1,10 +1,10 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { User } from '@app/utils/entities/user';
-import { Store } from '@ngrx/store';
-import { selectCurrentUser } from '@app/utils/store/auth/auth.selectors';
+import { ProfileInfo } from '@app/utils/entities/user';
 import { firstValueFrom, Observable, of, map, catchError } from 'rxjs';
 import { environment } from 'src/environments/environment';
+
+export type Role = 'admin' | 'user' | 'guest';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -16,6 +16,7 @@ export class AuthService {
       access_token: string;
       refresh_token: string;
       user: { id: string; email: string; };
+      profile_info: ProfileInfo;
     }>(`${environment.backendAiApiURL}auth/login`, {
       email,
       password

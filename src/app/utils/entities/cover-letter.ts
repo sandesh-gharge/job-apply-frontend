@@ -17,7 +17,7 @@ export interface CoverLetterInfo {
   title: string;
   userId: string
   clData: CoverLetterPrompts;
-  version: string;
+  version: number;
 }
 
 export interface CoverLetterDocInfo {
@@ -38,7 +38,7 @@ export const defaultcl = (): CoverLetterInfo => ({
     id: '',
     title: '',
     userId: '',
-    version: '',
+    version: 0,
     clData: {
       commonPrompt: '',
       sectionPrompts: [

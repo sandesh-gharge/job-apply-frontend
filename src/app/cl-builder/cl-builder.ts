@@ -103,6 +103,7 @@ export class CoverLetterComponent implements OnInit {
     // Reactively load data when store is populated (e.g. after refresh)
     const currentCL = this.store.selectSignal(selectCurrentCoverLetter);
     effect(() => {
+      console.log('Current CL changed:', currentCL());
       const current = currentCL();
       if (current && !this.hasLoadedInitialData) {
         this.hasLoadedInitialData = true;
@@ -444,11 +445,15 @@ export class CoverLetterComponent implements OnInit {
   }
 
   // ── Versioning Methods ────────────────────────────────────────
-  onVersionChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const version = select.value;
-    this.store.dispatch(selectCoverLetterVersion({ version }));
-    const selected = this.clInfoList().find(v => v.version === version);
+  onVersionChange(value: any) {
+    let version: string | number = value;
+    if (value && value.target) {
+      version = (value.target as HTMLSelectElement).value;
+    }
+    const num = typeof version === 'string' ? parseInt(version, 10) : version;
+    if (Number.isNaN(num)) return;
+    this.store.dispatch(selectCoverLetterVersion({ version: num }));
+    const selected = this.clInfoList().find(v => v.version === num);
     if (selected) {
       this.coverLetterInfo.set(selected);
       this.coverLetterTitle.set(selected.title);

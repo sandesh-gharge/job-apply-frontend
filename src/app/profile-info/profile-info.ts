@@ -59,7 +59,8 @@ export class ProfileInfoComponent implements OnInit {
     agentApiKey: '',
     modelName: '',
     profileImageUrl: '',
-    signatureImageUrl: ''
+    signatureImageUrl: '',
+    role: 'guest'
   });
 
   isDirty = signal(false);
