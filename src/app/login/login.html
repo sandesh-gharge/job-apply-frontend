@@ -2,7 +2,7 @@
   <div class="lang-selector-container">
     <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)" class="lang-select">
       @for (lang of translate.languages(); track lang.code) {
-        <option [value]="lang.code">{{ lang.name }}</option>
+        <option [value]="lang.code" [selected]="translate.currentLang() === lang.code">{{ lang.name }}</option>
       }
     </select>
   </div>

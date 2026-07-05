@@ -1,6 +1,4 @@
 import { inject, Injectable } from "@angular/core";
-import { Store } from "@ngrx/store";
-import { selectUserID } from "../store/auth/auth.selectors";
 import { ProfileInfo } from "../entities/user";
 import { FileService } from "./file.service";
 import { HttpClient } from "@angular/common/http";
@@ -11,16 +9,15 @@ import { firstValueFrom } from "rxjs";
 export class ProfileService {
 
     private http = inject(HttpClient);
-    private store = inject(Store);
     private readonly baseUrl = environment.backendAiApiURL;
 
-    userId = this.store.selectSignal(selectUserID);
+    userId = JSON.parse(sessionStorage.getItem('user') || '{}').id || '';
     bucket = environment.PROFILE_ASSETS_BUCKET;
     fileService = inject(FileService);
 
     getProfile() {
         return firstValueFrom(
-            this.http.get<any>(`${this.baseUrl}profile/${this.userId()}`)
+            this.http.get<any>(`${this.baseUrl}profile/${this.userId}`)
         );
     }
 

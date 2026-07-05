@@ -115,6 +115,32 @@
   &:hover { background: var(--bg-hover); }
 }
 
+.tour-start-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid rgba(26, 86, 219, 0.45);
+  background: rgba(26, 86, 219, 0.1);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary, #1a56db);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  white-space: nowrap;
+
+  .tour-start-icon { font-size: 0.9rem; }
+
+  &:hover {
+    background: rgba(26, 86, 219, 0.18);
+    border-color: rgba(26, 86, 219, 0.7);
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
 .content {
   padding: 2rem 2rem;
   max-width: 1200px;

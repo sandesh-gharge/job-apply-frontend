@@ -1,4 +1,4 @@
-import { Component, signal, inject, ViewChild, AfterViewInit, computed } from '@angular/core';
+import { Component, signal, inject, ViewChild, AfterViewInit, computed, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CvBuilderComponent } from '@app/cv-builder/cv-builder';
 import { ToastService } from '@app/utils/services/toast.service';
@@ -11,6 +11,7 @@ import { CoverLetterDocInfo, defaultcl } from '@app/utils/entities/cover-letter'
 import { CvData } from '@app/utils/entities/cv';
 import { applyJob } from '@app/utils/store/jobs/jobs.actions';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { TourService } from '@app/utils/services/tour.service';
 
 const SKILL_CATEGORIES = [
   'Frontend', 'Backend', 'DevOps'
@@ -35,15 +36,18 @@ export class ApplyJobComponent {
   private jobsService = inject(JobsService);
   private store = inject(Store);
   public translate = inject(TranslationService);
+  public tourService = inject(TourService);
 
   // ViewChild references to access child component data
   @ViewChild('cvBuilder') cvBuilder!: CvBuilderComponent;
   @ViewChild('coverLetter') coverLetterComponent!: CoverLetterComponent;
 
-
-
-  ngAfterViewInit() {
-    // ViewChild is available after view initialization
+  constructor() {
+    // Drive the apply-job sub-tab from the tour when the tour requests a switch
+    effect(() => {
+      const desired = this.tourService.desiredApplyTab();
+      if (desired) this.activeTab.set(desired);
+    });
   }
 
   // Extract CV data from CV builder component

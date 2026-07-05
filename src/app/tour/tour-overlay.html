@@ -1,0 +1,63 @@
+@if (isVisible()) {
+  <!-- ── Full-screen backdrop ──────────────────────────────────────────── -->
+  <div class="tour-backdrop" (click)="$event.stopPropagation()">
+
+    <!-- Spotlight cutout -->
+    @if (spotlightRect()) {
+      <div
+        class="tour-spotlight"
+        [style.top.px]="spotlightRect()!.top"
+        [style.left.px]="spotlightRect()!.left"
+        [style.width.px]="spotlightRect()!.width"
+        [style.height.px]="spotlightRect()!.height"
+      ></div>
+    }
+
+    <!-- ── Tooltip card ──────────────────────────────────────────────────── -->
+    <div
+      class="tour-card"
+      [class.tour-card--final]="tourService.currentStep() + 1 === tourService.totalSteps()"
+      [style.top]="tooltipPos().top"
+      [style.left]="tooltipPos().left"
+      [style.transform]="tooltipPos().transform"
+    >
+      <!-- Progress badge -->
+      <div class="tour-progress">
+        <span class="tour-step-badge">{{ tourService.currentStep() + 1 }} / {{ tourService.totalSteps() }}</span>
+        <div class="tour-progress-track">
+          <div
+            class="tour-progress-fill"
+            [style.width.%]="((tourService.currentStep() + 1) / tourService.totalSteps()) * 100"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Step content -->
+      <h3 class="tour-title">{{ translate.t().tour[tourService.currentStepDef()!.titleKey] }}</h3>
+      <p class="tour-body">{{ translate.t().tour[tourService.currentStepDef()!.bodyKey] }}</p>
+
+      <!-- Actions -->
+      <div class="tour-actions">
+        <button class="tour-btn-skip" (click)="tourService.skip()">
+          {{ translate.t().tour.btnSkip }}
+        </button>
+
+        <div class="tour-nav">
+          @if (tourService.currentStep() > 0) {
+            <button class="tour-btn-back" (click)="tourService.prev()">
+              {{ translate.t().tour.btnBack }}
+            </button>
+          }
+          <button class="tour-btn-next" (click)="tourService.next()">
+            {{ tourService.currentStep() + 1 < tourService.totalSteps()
+                ? translate.t().tour.btnNext
+                : '🎉 ' + translate.t().tour.btnGotIt
+            }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+}

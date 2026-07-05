@@ -2,6 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { autoLogin, changePassword, login, loginFailure, loginSuccess, logout } from "./auth.actions";
 import { AuthService } from "../../services/auth.service";
+import { TourService } from "../../services/tour.service";
 import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
 import { ProfileInfo, User } from "../../entities/user";
 import { Router } from "@angular/router";
@@ -15,6 +16,10 @@ export class AuthEffects {
 
     private actions$ = inject(Actions);
     private router = inject(Router);
+    private tourService = inject(TourService);
+
+    /** True only during a fresh interactive login — cleared after tour check */
+    private isFreshLogin = false;
 
     login$ = createEffect(() =>
         this.actions$.pipe(
@@ -24,9 +29,12 @@ export class AuthEffects {
 
                     switchMap(response => {
                         const userEmail = response.user?.email || email;
-                        const name = userEmail.split('@')[0].replace(/[._]/g, ' ');
                         const id = response.user?.id || '';
                         const profile_info = response.profile_info;
+                        let name = userEmail.split('@')[0].replace(/[._]/g, ' ');
+                        if(profile_info?.firstName && profile_info?.lastName) {
+                            name = profile_info.firstName + ' ' + profile_info.lastName;
+                        }
                         return of(
                         loadProfileInfoSuccess( {profileInfo : profile_info}),
                         loginSuccess({
@@ -54,7 +62,9 @@ export class AuthEffects {
                 sessionStorage.setItem('user', JSON.stringify(user));
                 sessionStorage.setItem('access_token', token);
                 sessionStorage.setItem('refresh_token', refresh_token);
+                // Mark as fresh login only when redirect is true (interactive login, not autoLogin)
                 if (redirect !== false) {
+                    this.isFreshLogin = true;
                     this.router.navigate(['/home']);
                 }
             })
@@ -99,7 +109,10 @@ export class AuthEffects {
                     if (userStr && token) {
                         const user = JSON.parse(userStr);
                         console.log("Auto-login successful from sessionStorage");
-                        return of(loginSuccess({ user, token, refresh_token: sessionStorage.getItem('refresh_token') || '', redirect: false }));
+                        return of(
+                            loadProfileInfo(),
+                            loginSuccess({ user, token, refresh_token: sessionStorage.getItem('refresh_token') || '', redirect: false })
+                        );
                     } else {
                         console.log("No session found in sessionStorage for auto-login");
                         return of(logout());
@@ -127,5 +140,22 @@ export class AuthEffects {
                 })
             ))
         )
-    )
+    );
+
+    /**
+     * Starts the onboarding tour when a guest user completes a fresh interactive
+     * login. Does NOT trigger on autoLogin (page refresh).
+     */
+    tourStart$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(loadProfileInfoSuccess),
+            tap(({ profileInfo }) => {
+                if (profileInfo?.role === 'guest' && this.isFreshLogin) {
+                    this.isFreshLogin = false; // consume the flag
+                    // Slight delay to allow navigation + HomeComponent to initialise
+                    setTimeout(() => this.tourService.startTour(), 600);
+                }
+            })
+        ), { dispatch: false }
+    );
 }

@@ -3,7 +3,12 @@
   <!-- Step indicator -->
   <nav class="tab-nav">
       @for (tab of tabs(); track tab.id) {
-        <button class="tab-btn" [class.active]="activeTab() === tab.id" (click)="setTab(tab.id)">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === tab.id"
+          (click)="setTab(tab.id)"
+          [attr.data-tour]="tab.id === 'Cover Letter' ? 'tour-wizard-tab-cl' : tab.id === 'CV' ? 'tour-wizard-tab-cv' : tab.id === 'PDF Preview' ? 'tour-wizard-tab-preview' : null"
+        >
           <span class="tab-icon">{{ tab.icon }}</span>
           {{ tab.label }}
         </button>
@@ -22,7 +27,8 @@
       <div class="url-row">
         <input class="url-input" type="url" [placeholder]="translate.t().applyWizard.placeholderUrl"
           [ngModel]="jobUrl()" (ngModelChange)="jobUrl.set($event)"
-          (keydown.enter)="fetchJob()" />
+          (keydown.enter)="fetchJob()"
+          data-tour="tour-url-input" />
         <button class="btn-fetch" (click)="fetchJob()" [disabled]="fetchLoading() || !jobUrl().trim()">
           @if (fetchLoading()) { <span class="spinner"></span> {{ translate.t().applyWizard.loading }} }
           @else { {{ translate.t().applyWizard.btnFetch }} }
@@ -39,12 +45,13 @@
         <label>{{ translate.t().applyWizard.labelDescription }}</label>
         <textarea class="jd-textarea" rows="18"
           [placeholder]="translate.t().applyWizard.placeholderDescription"
-          [ngModel]="jobDescription()" (ngModelChange)="jobDescription.set($event)"></textarea>
+          [ngModel]="jobDescription()" (ngModelChange)="jobDescription.set($event)"
+          data-tour="tour-jd-textarea"></textarea>
       </div>
 
       <div class="step-footer">
         <span class="char-count">{{ jobDescription().length }} {{ translate.t().applyWizard.characters }}</span>
-        <button class="btn-next" (click)="extractDataForCoverLetter()" [disabled]="parseLoading() || !jobDescription().trim()">
+        <button class="btn-next" (click)="extractDataForCoverLetter()" [disabled]="parseLoading() || !jobDescription().trim()" data-tour="tour-extract-btn">
           @if (parseLoading()) { <span class="spinner"></span> {{ translate.t().applyWizard.noticeProgress }} }
           @else { {{ translate.t().applyWizard.btnExtractDetails }} }
         </button>
@@ -90,7 +97,7 @@
       <div class="step-footer apply-footer">
         <button class="btn-back" (click)="setTab('CV')">{{ translate.t().applyWizard.btnBack }}</button>
         <div class="footer-right">
-          <button class="btn-mark-applied" (click)="markAsApplied()">
+          <button class="btn-mark-applied" (click)="markAsApplied()" data-tour="tour-mark-applied-btn">
             {{ translate.t().applyPreview.btnMarkApplied }}
           </button>
         </div>
