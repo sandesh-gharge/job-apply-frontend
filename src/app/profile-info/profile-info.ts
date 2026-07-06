@@ -60,7 +60,8 @@ export class ProfileInfoComponent implements OnInit {
     modelName: '',
     profileImageUrl: '',
     signatureImageUrl: '',
-    role: 'guest'
+    role: 'guest',
+    useDefaultApi: true
   });
 
   isDirty = signal(false);

@@ -6,6 +6,7 @@
 /out-tsc
 /bazel-out
 /temp/
+/public/temp/
 
 specs/*
 # Node

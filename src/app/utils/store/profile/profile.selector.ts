@@ -32,3 +32,8 @@ export const selectProfileRole = createSelector(
     selectProfileState,
     (state: ProfileInfoState) => state.profileInfo?.role
 );
+
+export const selectProfileUseDefaultApi = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.useDefaultApi
+);

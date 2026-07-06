@@ -8,12 +8,13 @@ import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
 import { CoverLetterSection, CoverLetterDocInfo } from '../utils/entities/cover-letter';
 import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
-import { selectProfileInfo } from '../utils/store/profile/profile.selector';
+import { selectProfileInfo, selectProfileUseDefaultApi } from '../utils/store/profile/profile.selector';
 import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
 import { LocalAiService } from '../utils/services/local-ai-service';
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { AiService } from '@app/utils/services/ai-service';
 
 @Component({
   selector: 'app-cover-letter',
@@ -25,14 +26,16 @@ export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
   private store = inject(Store);
-  private aiService = inject(LocalAiService);
+  private localAiService = inject(LocalAiService);
   private clService = inject(CLService);
   public translate = inject(TranslationService);
+  private cloudAiService = inject(AiService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
   clInfoList = this.store.selectSignal(selectCoverLetterInfoList);
   coverLetterInfo = this.clService.draftCoverLetter;
+  useDefaultApi = this.store.selectSignal(selectProfileUseDefaultApi);
 
   userID = this.store.selectSignal(selectUserID);
 
@@ -294,181 +297,174 @@ export class CoverLetterComponent implements OnInit {
       const apiUrl = pInfo.agentApiUrl;
       const apiKey = pInfo.agentApiKey;
       const modelName = pInfo.modelName;
-
-      if (!apiUrl || !apiKey || !modelName) {
-        this.toast.show('AI API URL, API Key, or Model Name not configured in profile.', 'error');
-        this.coverLetterInfo.update(info => ({
-          ...info,
-          clData: {
-            ...info.clData,
-            sectionPrompts: info.clData.sectionPrompts.map(sec =>
-              sec.id === sectionId ? { ...sec, loading: false } : sec
-            )
-          }
-        }));
-        return;
+      const userMessage = this.buildSectionPrompt(section);
+      let data : any = null;
+      if (this.useDefaultApi()) {
+        data = await firstValueFrom(this.localAiService.generate(userMessage))
+      }
+      else{
+        data = await firstValueFrom(this.cloudAiService.generateFromMessages([{ role: 'user', content: userMessage }], { apiUrl, apiKey, modelName }));
       }
 
-      const userMessage = this.buildSectionPrompt(section);
-
-      const data: any = await firstValueFrom(this.aiService.generate(userMessage))
       console.log(data.output)
 
       const text = typeof data.output === 'string' ? data.output : data.output.toString();
 
-      this.coverLetterInfo.update(info => ({
-        ...info,
-        clData: {
-          ...info.clData,
-          sectionPrompts: info.clData.sectionPrompts.map(sec =>
-            sec.id === sectionId ? { ...sec, content: text, loading: false } : sec
-          )
+          this.coverLetterInfo.update(info => ({
+            ...info,
+            clData: {
+              ...info.clData,
+              sectionPrompts: info.clData.sectionPrompts.map(sec =>
+                sec.id === sectionId ? { ...sec, content: text, loading: false } : sec
+              )
+            }
+          }));
+          this.toast.show(`"${section.title}" generated!`);
+
+
+        } catch {
+          this.coverLetterInfo.update(info => ({
+            ...info,
+            clData: {
+              ...info.clData,
+              sectionPrompts: info.clData.sectionPrompts.map(sec =>
+                sec.id === sectionId ? { ...sec, loading: false } : sec
+              )
+            }
+          }));
+          this.toast.show('Generation failed. Try again.', 'error');
         }
-      }));
-      this.toast.show(`"${section.title}" generated!`);
-    } catch {
-      this.coverLetterInfo.update(info => ({
-        ...info,
-        clData: {
-          ...info.clData,
-          sectionPrompts: info.clData.sectionPrompts.map(sec =>
-            sec.id === sectionId ? { ...sec, loading: false } : sec
-          )
-        }
-      }));
-      this.toast.show('Generation failed. Try again.', 'error');
-    }
-  }
+      }
 
   // ── Generate full letter ───────────────────────────────────────
   async generateFullLetter() {
-    this.generatingFull.set(true);
-    const m = this.meta();
-    const common = this.coverLetterInfo().clData.commonPrompt.trim();
-    const titles = this.coverLetterInfo().clData.sectionPrompts.map(s => s.title).join(', ');
+        this.generatingFull.set(true);
+        const m = this.meta();
+        const common = this.coverLetterInfo().clData.commonPrompt.trim();
+        const titles = this.coverLetterInfo().clData.sectionPrompts.map(s => s.title).join(', ');
 
-    const prompt = [
-      common ? `Global guidance:\n${common}\n` : '',
-      `Write all cover letter sections for:`,
-      `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
-      `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
-      `Hiring manager: ${m.contactName || 'Hiring Team'}.`,
-      `Sections: ${titles}.`,
-      `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
-    ].filter(Boolean).join('\n');
+        const prompt = [
+          common ? `Global guidance:\n${common}\n` : '',
+          `Write all cover letter sections for:`,
+          `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
+          `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
+          `Hiring manager: ${m.contactName || 'Hiring Team'}.`,
+          `Sections: ${titles}.`,
+          `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
+        ].filter(Boolean).join('\n');
 
-    try {
-      const pInfo = this.profileInfo();
-      if (!pInfo) {
-        this.toast.show('Profile information not available. Cannot generate full letter.', 'error');
-        return;
-      }
+        try {
+          const pInfo = this.profileInfo();
+          if (!pInfo) {
+            this.toast.show('Profile information not available. Cannot generate full letter.', 'error');
+            return;
+          }
 
-      const apiUrl = pInfo.agentApiUrl;
-      const apiKey = pInfo.agentApiKey;
-      const modelName = pInfo.modelName;
+          const apiUrl = pInfo.agentApiUrl;
+          const apiKey = pInfo.agentApiKey;
+          const modelName = pInfo.modelName;
 
-      const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
-      const userMessage = [
-        common ? `Global guidance:\n${common}\n` : '',
-        `Write all cover letter sections for:`,
-        `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
-        `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
-        `Hiring manager: ${m.contactName || 'Hiring Team]'}.`,
-        `Sections: ${titles}.`,
-        `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
-      ].filter(Boolean).join('\n');
+          const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
+          const userMessage = [
+            common ? `Global guidance:\n${common}\n` : '',
+            `Write all cover letter sections for:`,
+            `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
+            `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
+            `Hiring manager: ${m.contactName || 'Hiring Team]'}.`,
+            `Sections: ${titles}.`,
+            `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
+          ].filter(Boolean).join('\n');
 
-      const promptBody = JSON.stringify({
-        model: modelName,
-        max_tokens: 1200,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }]
-      });
+          const promptBody = JSON.stringify({
+            model: modelName,
+            max_tokens: 1200,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userMessage }]
+          });
 
-      const data: any = await firstValueFrom(this.aiService.generate(promptBody))
+          const data: any = await firstValueFrom(this.localAiService.generate(promptBody))
 
-      const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
-      const parsed: { title: string; content: string }[] = JSON.parse(
-        raw.replace(/```json|```/g, '').trim()
-      );
+          const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
+          const parsed: { title: string; content: string }[] = JSON.parse(
+            raw.replace(/```json|```/g, '').trim()
+          );
 
-      this.coverLetterInfo.update(info => ({
-        ...info,
-        clData: {
-          ...info.clData,
-          sectionPrompts: info.clData.sectionPrompts.map(sec => {
-            const match = parsed.find(p =>
-              p.title.toLowerCase().includes(sec.title.toLowerCase().split(' ')[0])
-            );
-            return match ? { ...sec, content: match.content } : sec;
-          })
+          this.coverLetterInfo.update(info => ({
+            ...info,
+            clData: {
+              ...info.clData,
+              sectionPrompts: info.clData.sectionPrompts.map(sec => {
+                const match = parsed.find(p =>
+                  p.title.toLowerCase().includes(sec.title.toLowerCase().split(' ')[0])
+                );
+                return match ? { ...sec, content: match.content } : sec;
+              })
+            }
+          }));
+
+          this.previewMode.set(true);
+          this.toast.show('Cover letter generated!');
+        } catch {
+          this.toast.show('Generation failed. Try again.', 'error');
+        } finally {
+          this.generatingFull.set(false);
         }
-      }));
-
-      this.previewMode.set(true);
-      this.toast.show('Cover letter generated!');
-    } catch {
-      this.toast.show('Generation failed. Try again.', 'error');
-    } finally {
-      this.generatingFull.set(false);
-    }
-  }
+      }
 
   // ── Preview ────────────────────────────────────────────────────
   get previewText(): string {
-    const m = this.meta();
-    const body = m.paragraphs.filter(Boolean).join('\n\n');
-    return [
-      m.applicantName,
-      m.applicantLocation,
-      '',
-      this.formatDisplayDate(m.date),
-      '',
-      m.companyName,
-      m.companyLocation,
-      '',
-      `Dear ${m.contactName || 'Hiring Team'},`,
-      '',
-      body,
-      '',
-      'Yours sincerely,',
-      m.applicantName
-    ].join('\n');
-  }
+        const m = this.meta();
+        const body = m.paragraphs.filter(Boolean).join('\n\n');
+        return [
+          m.applicantName,
+          m.applicantLocation,
+          '',
+          this.formatDisplayDate(m.date),
+          '',
+          m.companyName,
+          m.companyLocation,
+          '',
+          `Dear ${m.contactName || 'Hiring Team'},`,
+          '',
+          body,
+          '',
+          'Yours sincerely,',
+          m.applicantName
+        ].join('\n');
+      }
 
   async copyToClipboard() {
-    await navigator.clipboard.writeText(this.previewText);
-    this.copySuccess.set(true);
-    this.toast.show('Copied to clipboard!');
-    setTimeout(() => this.copySuccess.set(false), 2000);
-  }
+        await navigator.clipboard.writeText(this.previewText);
+        this.copySuccess.set(true);
+        this.toast.show('Copied to clipboard!');
+        setTimeout(() => this.copySuccess.set(false), 2000);
+      }
 
-  // ── Versioning Methods ────────────────────────────────────────
-  onVersionChange(value: any) {
-    let version: string | number = value;
-    if (value && value.target) {
-      version = (value.target as HTMLSelectElement).value;
+      // ── Versioning Methods ────────────────────────────────────────
+      onVersionChange(value: any) {
+        let version: string | number = value;
+        if (value && value.target) {
+          version = (value.target as HTMLSelectElement).value;
+        }
+        const num = typeof version === 'string' ? parseInt(version, 10) : version;
+        if (Number.isNaN(num)) return;
+        this.store.dispatch(selectCoverLetterVersion({ version: num }));
+        const selected = this.clInfoList().find(v => v.version === num);
+        if (selected) {
+          this.coverLetterInfo.set(selected);
+          this.coverLetterTitle.set(selected.title);
+        }
+      }
+
+      clearCoverLetter() {
+        if (!confirm(this.translate.currentLang() === 'de' ? 'Möchten Sie alle Anschreiben-Daten löschen? Dies kann nicht rückgängig gemacht werden.' : 'Clear all Cover Letter data? This cannot be undone.')) return;
+        this.clService.clearDraft();
+        this.toast.show(this.translate.currentLang() === 'de' ? 'Anschreiben gelöscht.' : 'Cover Letter cleared.', 'info');
+      }
+
+      updateTitle(event: any) {
+        const value = typeof event === 'string' ? event : event.target.value;
+        this.coverLetterTitle.set(value);
+        this.coverLetterInfo.update(c => ({ ...c, title: value }));
+      }
     }
-    const num = typeof version === 'string' ? parseInt(version, 10) : version;
-    if (Number.isNaN(num)) return;
-    this.store.dispatch(selectCoverLetterVersion({ version: num }));
-    const selected = this.clInfoList().find(v => v.version === num);
-    if (selected) {
-      this.coverLetterInfo.set(selected);
-      this.coverLetterTitle.set(selected.title);
-    }
-  }
-
-  clearCoverLetter() {
-    if (!confirm(this.translate.currentLang() === 'de' ? 'Möchten Sie alle Anschreiben-Daten löschen? Dies kann nicht rückgängig gemacht werden.' : 'Clear all Cover Letter data? This cannot be undone.')) return;
-    this.clService.clearDraft();
-    this.toast.show(this.translate.currentLang() === 'de' ? 'Anschreiben gelöscht.' : 'Cover Letter cleared.', 'info');
-  }
-
-  updateTitle(event: any) {
-    const value = typeof event === 'string' ? event : event.target.value;
-    this.coverLetterTitle.set(value);
-    this.coverLetterInfo.update(c => ({ ...c, title: value }));
-  }
-}

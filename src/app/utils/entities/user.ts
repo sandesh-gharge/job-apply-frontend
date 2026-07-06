@@ -18,4 +18,5 @@ export interface ProfileInfo {
   profileImageUrl?: string;
   signatureImageUrl?: string;
   role: Role;
+  useDefaultApi: boolean;
 }
