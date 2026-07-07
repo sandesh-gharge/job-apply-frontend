@@ -136,8 +136,37 @@
   width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border-color);
   background: var(--bg-card); color: var(--text-light); cursor: pointer; font-size: 0.85rem;
   display: flex; align-items: center; justify-content: center;
-  &:hover { background: var(--bg-hover); color: var(--text-primary); }
-  &-danger:hover { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+  &:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &-danger:hover:not(:disabled) { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+}
+
+.btn-small { width: 24px; height: 24px; font-size: 0.75rem; }
+
+.table-header-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--border-color);
+  background: var(--bg-subtle);
+
+  .spacer { flex: 1; }
+
+  .pagination-right {
+    display: flex; align-items: center; gap: 12px;
+    
+    label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+    
+    .per-page-select {
+      padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color);
+      background: var(--bg-card); color: var(--text-primary);
+      font-size: 0.75rem; cursor: pointer; outline: none;
+      &:focus { border-color: var(--primary); }
+    }
+
+    .pagination-nav {
+      display: flex; align-items: center; gap: 8px;
+      .page-info { font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; min-width: 40px; text-align: center; }
+    }
+  }
 }
 
 .empty-state {

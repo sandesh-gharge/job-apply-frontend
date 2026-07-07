@@ -480,6 +480,12 @@ export const fallbackEn = {
     syncingCv: 'Syncing CV',
     syncingCl: 'Syncing Cover Letter',
     loadingJobs: 'Loading Jobs'
+  },
+  footer: {
+    proprietary: 'Proprietary',
+    proprietaryMessage: 'Proprietary and Confidential. Unauthorized use, copying, or distribution is strictly prohibited.',
+    help: 'Help',
+    language: 'Language'
   }
 };
 

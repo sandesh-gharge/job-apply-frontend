@@ -10,10 +10,10 @@
       <div class="preview-header">
         <h3>{{ translate.t().applyPreview.cvTitle }}</h3>
         <div class="action-buttons">
-          <button type="button" class="btn-preview" (click)="fetchPreview('cv')" [disabled]="loading$()">
+          <button type="button" class="btn-preview" (click)="fetchPreview('cv')" [disabled]="cvLoading$()">
             {{ translate.t().applyPreview.btnPreview }}
           </button>
-          <button type="button" class="btn-download" (click)="downloadPDF('cv')" [disabled]="loading$()">
+          <button type="button" class="btn-download" (click)="downloadPDF('cv')" [disabled]="cvLoading$()">
             {{ translate.t().applyPreview.btnDownload }}
           </button>
         </div>
@@ -23,7 +23,7 @@
           <iframe [src]="cvPreviewUrl$()!" class="pdf-preview" title="CV Preview"></iframe>
         } @else {
           <div class="empty-state">
-            @if (loading$()) {
+            @if (cvLoading$()) {
               <div class="spinner"></div>
               <p>{{ translate.t().applyPreview.generatingPreview }}</p>
             } @else {
@@ -39,10 +39,10 @@
       <div class="preview-header">
         <h3>{{ translate.t().applyPreview.clTitle }}</h3>
         <div class="action-buttons">
-          <button type="button" class="btn-preview" (click)="fetchPreview('cl')" [disabled]="loading$()">
+          <button type="button" class="btn-preview" (click)="fetchPreview('cl')" [disabled]="clLoading$()">
             {{ translate.t().applyPreview.btnPreview }}
           </button>
-          <button type="button" class="btn-download" (click)="downloadPDF('cl')" [disabled]="loading$()">
+          <button type="button" class="btn-download" (click)="downloadPDF('cl')" [disabled]="clLoading$()">
             {{ translate.t().applyPreview.btnDownload }}
           </button>
         </div>
@@ -52,7 +52,7 @@
           <iframe [src]="clPreviewUrl$()!" class="pdf-preview" title="Cover Letter Preview"></iframe>
         } @else {
           <div class="empty-state">
-            @if (loading$()) {
+            @if (clLoading$()) {
               <div class="spinner"></div>
               <p>{{ translate.t().applyPreview.generatingPreview }}</p>
             } @else {

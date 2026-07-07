@@ -30,7 +30,8 @@ export class ApplyPreviewComponent {
 
   private clHtml = signal<string>('');
   private cvHtml = signal<string>('');
-  private loading = signal(false);
+  private cvLoading = signal(false);
+  private clLoading = signal(false);
   private store = inject(Store);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
@@ -72,12 +73,20 @@ export class ApplyPreviewComponent {
   // Getters for template access
   get cvPreviewUrl$() { return this.cvPreviewUrl; }
   get clPreviewUrl$() { return this.clPreviewUrl; }
-  get loading$() { return this.loading; }
+  get cvLoading$() { return this.cvLoading; }
+  get clLoading$() { return this.clLoading; }
 
   async fetchPreview(type: 'cv' | 'cl') {
-    if (this.loading()) return;
+    if (type === 'cv' ? this.cvLoading() : this.clLoading()) return;
 
-    this.loading.set(true);
+    if (type === 'cv') {
+      this.cvLoading.set(true);
+      this.cvPreviewUrl.set(null);
+    } else {
+      this.clLoading.set(true);
+      this.clPreviewUrl.set(null);
+    }
+
     const data = type === 'cv' ? this.cvInfo().cvData : this.coverLetterData;
 
     try {
@@ -99,12 +108,20 @@ export class ApplyPreviewComponent {
       this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailPreviewCv : this.translate.t().applyPreview.toastFailPreviewCl, 'error');
       this.toast.show(this.translate.t().applyPreview.toastMissingFields, 'error');
     } finally {
-      this.loading.set(false);
+      if (type === 'cv') {
+        this.cvLoading.set(false);
+      } else {
+        this.clLoading.set(false);
+      }
     }
   }
 
   async downloadPDF(type: 'cv' | 'cl') {
-    this.loading.set(true);
+    if (type === 'cv') {
+      this.cvLoading.set(true);
+    } else {
+      this.clLoading.set(true);
+    }
     const data = type === 'cv' ? this.cvHtml() : this.clHtml();
 
     const name = [this.profileInfo()?.firstName,this.profileInfo()?.lastName].join("_");
@@ -130,7 +147,11 @@ export class ApplyPreviewComponent {
       console.error(`Error downloading ${type} PDF:`, error);
       this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailDownloadCv : this.translate.t().applyPreview.toastFailDownloadCl, 'error');
     } finally {
-      this.loading.set(false);
+      if (type === 'cv') {
+        this.cvLoading.set(false);
+      } else {
+        this.clLoading.set(false);
+      }
     }
   }
 }

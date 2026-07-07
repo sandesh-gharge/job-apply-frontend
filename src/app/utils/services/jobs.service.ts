@@ -1,22 +1,18 @@
-import { Injectable, signal, inject, effect } from '@angular/core';
-import { StorageService } from './storage.service';
+import { Injectable, inject, effect } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { JobDetails } from '@app/utils/entities/job-details';
 import { HttpClient } from '@angular/common/http';
-import { FileService } from './file.service';
-import { firstValueFrom, map } from 'rxjs';
+import { map } from 'rxjs';
 import { selectUserID } from '../store/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { ToastService } from './toast.service';
 import { CoverLetterDocInfo } from '../entities/cover-letter';
 import { CvData } from '../entities/cv';
 import { selectAllJobs } from '../store/jobs/jobs.selectors';
-import { addJob } from '../store/jobs/jobs.actions';
 import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class JobsService {
-  private storage = inject(StorageService);
   private http = inject(HttpClient);
   private readonly baseUrl = environment.backendAiApiURL;
   private store = inject(Store);

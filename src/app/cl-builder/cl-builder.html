@@ -15,12 +15,16 @@
       @if (clInfoList().length > 0) {
         <button class="btn-edit-title" (click)="openRenameTitleDialog()" title="Rename selected version">✎</button>
       }
-      <button class="btn-action" (click)="saveNow()">{{ translate.t().cvBuilder.saveBtn }}</button>
+      <button class="btn-action" (click)="saveNow()" [disabled]="isSaving()">
+        @if (isSaving()) { <span class="spinner-btn"></span> }
+        {{ translate.t().cvBuilder.saveBtn }}
+      </button>
       <button class="btn-action" (click)="openSaveAsDialog()">{{ translate.t().cvBuilder.saveAsBtn }}</button>
       <button class="btn-outline" (click)="previewMode.set(!previewMode())">
         {{ previewMode() ? translate.t().clBuilder.editorBtn : translate.t().clBuilder.previewBtn }}
       </button>
-      <button class="btn-generate" (click)="generateFullLetter()">
+      <button class="btn-generate" (click)="generateFullLetter()" [disabled]="generatingFull()">
+        @if (generatingFull()) { <span class="spinner-btn"></span> }
         {{ translate.t().clBuilder.generateFull }}
       </button>
     </div>
@@ -61,6 +65,11 @@
           <label>{{ translate.t().clBuilder.hiringManager }}</label>
           <input type="text" [placeholder]="translate.t().clBuilder.placeholderHiringManager"
             [ngModel]="(jobDetails | async)?.contactName" (ngModelChange)="updateField('contactName', $event)" />
+        </div>
+        <div class="field">
+          <label>{{ translate.t().jobTracker.formSalary }}</label>
+          <input type="text" [placeholder]="translate.t().jobTracker.placeholderSalary"
+            [ngModel]="(jobDetails | async)?.salary" (ngModelChange)="updateField('salary', $event)" />
         </div>
         <div class="field">
           <label>{{ translate.t().clBuilder.date }}</label>
@@ -201,7 +210,10 @@
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" (click)="closeTitleDialog()">{{ translate.t().common.cancel }}</button>
-          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? translate.t().clBuilder.modals.saveAsBtn : translate.t().clBuilder.modals.renameBtn }}</button>
+          <button class="btn-primary" (click)="confirmTitleDialog()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-btn"></span> }
+            {{ titleDialogMode() === 'saveAs' ? translate.t().clBuilder.modals.saveAsBtn : translate.t().clBuilder.modals.renameBtn }}
+          </button>
         </div>
       </div>
     </div>

@@ -76,6 +76,26 @@
 
   <!-- Table -->
   <div class="table-wrap">
+    @if (filteredJobs().length > 0) {
+      <div class="table-header-controls">
+        <div class="spacer"></div>
+        <div class="pagination-right">
+          <label for="perPage">Per page:</label>
+          <select id="perPage" class="per-page-select" [ngModel]="itemsPerPage()" (ngModelChange)="onItemsPerPageChange($event)">
+            @for (opt of itemsPerPageOptions; track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
+
+          <div class="pagination-nav">
+            <button class="btn-icon btn-small" (click)="prevPage()" [disabled]="safeCurrentPage() === 1">❮</button>
+            <span class="page-info">{{ safeCurrentPage() }} / {{ totalPages() }}</span>
+            <button class="btn-icon btn-small" (click)="nextPage()" [disabled]="safeCurrentPage() === totalPages()">❯</button>
+          </div>
+        </div>
+      </div>
+    }
+
     @if (filteredJobs().length === 0) {
       <div class="empty-state">
         <div class="empty-icon">◈</div>
@@ -103,7 +123,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (job of filteredJobs(); track job.id) {
+          @for (job of paginatedJobs(); track job.id) {
             <tr>
               <td>
                 <div class="company-cell">

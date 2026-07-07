@@ -194,6 +194,22 @@
   &:active {
     transform: scale(0.95);
   }
+
+  &.disabled-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--indigo);
+      transform: none;
+    }
+
+    &:active {
+      transform: none;
+    }
+  }
 }
 
 /* ── Image Upload ─────────────────────────────────────── */

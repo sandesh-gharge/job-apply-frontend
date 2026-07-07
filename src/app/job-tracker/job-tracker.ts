@@ -36,6 +36,11 @@ export class JobTrackerComponent {
   filterSalary   = signal('');
   filterStatusText = signal<JobStatus | 'All'>('All');
 
+  // Pagination
+  currentPage = signal(1);
+  itemsPerPage = signal(10);
+  itemsPerPageOptions = [5, 10, 25, 50, 100];
+
   form = signal<Omit<JobDetails, 'id'>>({
     companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0],
     status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '', jobDescription: ''
@@ -75,6 +80,22 @@ export class JobTrackerComponent {
     this.filterCompany() !== '' || this.filterLocation() !== '' || this.filterRole() !== '' ||
     this.filterContact() !== '' || this.filterSalary() !== '' || this.filterStatusText() !== 'All'
   );
+
+  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredJobs().length / this.itemsPerPage())));
+  
+  safeCurrentPage = computed(() => {
+    const current = this.currentPage();
+    const total = this.totalPages();
+    return current > total ? total : current;
+  });
+
+  paginatedJobs = computed(() => {
+    const list = this.filteredJobs();
+    const pageSize = this.itemsPerPage();
+    const page = this.safeCurrentPage();
+    const startIndex = (page - 1) * pageSize;
+    return list.slice(startIndex, startIndex + pageSize);
+  });
 
   clearFilters() {
     this.filterCompany.set('');
@@ -161,5 +182,28 @@ export class JobTrackerComponent {
   sortIcon(field: string): string {
     if (this.sortField() !== field) return '↕';
     return this.sortDir() === 'asc' ? '↑' : '↓';
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  nextPage() {
+    if (this.safeCurrentPage() < this.totalPages()) {
+      this.currentPage.set(this.safeCurrentPage() + 1);
+    }
+  }
+
+  prevPage() {
+    if (this.safeCurrentPage() > 1) {
+      this.currentPage.set(this.safeCurrentPage() - 1);
+    }
+  }
+
+  onItemsPerPageChange(size: number) {
+    this.itemsPerPage.set(Number(size));
+    this.currentPage.set(1);
   }
 }

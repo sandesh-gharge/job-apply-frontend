@@ -28,7 +28,9 @@
             <span>{{ translate.t().profile.changePhoto }}</span>
           </div>
         } @else {
-          <button type="button" class="btn-view-image-inside" (click)="loadProfileImage($event)">
+          <button type="button" class="btn-view-image-inside"
+            [class.disabled-btn]="!profile().profileImageUrl"
+            (click)="loadProfileImage($event)">
             👁️ {{ translate.t().profile.viewPhoto }}
           </button>
           <div class="upload-placeholder">
@@ -91,7 +93,9 @@
           <span>{{ translate.t().profile.changeSignature }}</span>
         </div>
       } @else {
-        <button type="button" class="btn-view-image-inside" (click)="loadSignatureImage($event)">
+        <button type="button" class="btn-view-image-inside"
+          [class.disabled-btn]="!profile().signatureImageUrl"
+          (click)="loadSignatureImage($event)">
           👁️ {{ translate.t().profile.viewSignature }}
         </button>
         <div class="upload-placeholder signature-placeholder">

@@ -140,12 +140,17 @@ export class CvBuilderComponent implements OnInit {
 
   proficiencyLevels = PROFICIENCY_LEVELS;
 
+  isSaving = signal(false);
+
   saveNow() {
+    this.isSaving.set(true);
     if (this.cvInfoList().length == 0 && this.userID()) {
       this.saveNew();
+      this.isSaving.set(false);
       return;
     }
     this.store.dispatch(updateCVInfo({ cvInfo: this.cv() }));
+    setTimeout(() => this.isSaving.set(false), 500);
   }
 
   openSaveAsDialog() {
@@ -163,9 +168,11 @@ export class CvBuilderComponent implements OnInit {
   }
 
   confirmTitleDialog() {
+    this.isSaving.set(true);
     const title = this.dialogTitle.trim();
     if (!title) {
       this.toast.show(this.translate.t().cvBuilder.toastTitleRequired, 'error');
+      this.isSaving.set(false);
       return;
     }
 
@@ -178,7 +185,10 @@ export class CvBuilderComponent implements OnInit {
       this.toast.show(this.translate.t().cvBuilder.toastTitleUpdated);
     }
 
-    this.closeTitleDialog();
+    setTimeout(() => {
+      this.isSaving.set(false);
+      this.closeTitleDialog();
+    }, 500);
   }
 
   saveNew() {

@@ -43,6 +43,10 @@ export class ProfileInfoComponent implements OnInit {
     if (event) {
       event.stopPropagation();
     }
+    if (!this.profile().profileImageUrl) {
+      this.toast.show(this.translate.t().profile.toastNoPhoto, 'info');
+      return;
+    }
     this.profileService.getImageUrl('profile-image').then(url => {
       if (url) {
         this.profileImageUrl.set(url);
@@ -55,6 +59,10 @@ export class ProfileInfoComponent implements OnInit {
   loadSignatureImage(event?: Event): void {
     if (event) {
       event.stopPropagation();
+    }
+    if (!this.profile().signatureImageUrl) {
+      this.toast.show(this.translate.t().profile.toastNoSignature, 'info');
+      return;
     }
     this.profileService.getImageUrl('signature').then(url => {
       if (url) {

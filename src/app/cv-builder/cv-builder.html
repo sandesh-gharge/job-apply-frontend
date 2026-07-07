@@ -23,7 +23,10 @@
       @if (cvInfoList().length > 0) {
         <button class="btn-edit-title" (click)="openRenameTitleDialog()" title="Rename selected version">✎</button>
       }
-      <button class="btn-action" (click)="saveNow()">{{ translate.t().cvBuilder.saveBtn }}</button>
+      <button class="btn-action" (click)="saveNow()" [disabled]="isSaving()">
+        @if (isSaving()) { <span class="spinner-btn"></span> }
+        {{ translate.t().cvBuilder.saveBtn }}
+      </button>
       <button class="btn-action" (click)="openSaveAsDialog()">{{ translate.t().cvBuilder.saveAsBtn }}</button>
       <button class="btn-action btn-danger-soft" (click)="clearCv()">{{ translate.t().cvBuilder.clearBtn }}</button>
     </div>
@@ -604,7 +607,10 @@
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" (click)="closeTitleDialog()">{{ translate.t().common.cancel }}</button>
-          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? translate.t().cvBuilder.modals.saveAsBtn : translate.t().cvBuilder.modals.renameBtn }}</button>
+          <button class="btn-primary" (click)="confirmTitleDialog()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-btn"></span> }
+            {{ titleDialogMode() === 'saveAs' ? translate.t().cvBuilder.modals.saveAsBtn : translate.t().cvBuilder.modals.renameBtn }}
+          </button>
         </div>
       </div>
     </div>

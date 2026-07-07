@@ -104,7 +104,6 @@ export class CoverLetterComponent implements OnInit {
     // Reactively load data when store is populated (e.g. after refresh)
     const currentCL = this.store.selectSignal(selectCurrentCoverLetter);
     effect(() => {
-      console.log('Current CL changed:', currentCL());
       const current = currentCL();
       if (current && !this.hasLoadedInitialData) {
         this.hasLoadedInitialData = true;
@@ -131,12 +130,17 @@ export class CoverLetterComponent implements OnInit {
 
 
 
+  isSaving = signal(false);
+
   saveNow() {
+    this.isSaving.set(true);
     if (this.clInfoList().length === 0 && this.userID()) {
       this.saveNew();
+      this.isSaving.set(false);
       return;
     }
     this.store.dispatch(updateCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
+    setTimeout(() => this.isSaving.set(false), 500);
   }
 
   openSaveAsDialog() {
@@ -154,9 +158,11 @@ export class CoverLetterComponent implements OnInit {
   }
 
   confirmTitleDialog() {
+    this.isSaving.set(true);
     const title = this.dialogTitle.trim();
     if (!title) {
       this.toast.show(this.translate.t().cvBuilder.toastTitleRequired, 'error');
+      this.isSaving.set(false);
       return;
     }
 
@@ -170,7 +176,10 @@ export class CoverLetterComponent implements OnInit {
       this.toast.show(this.translate.t().cvBuilder.toastTitleUpdated);
     }
 
-    this.closeTitleDialog();
+    setTimeout(() => {
+      this.isSaving.set(false);
+      this.closeTitleDialog();
+    }, 500);
   }
 
   saveNew() {

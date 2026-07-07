@@ -1,0 +1,23 @@
+<footer class="app-footer">
+  <div class="footer-content">
+    
+    <div class="footer-left">
+      <span class="copyright">© 2026 JobApply</span>
+      <span class="separator">·</span>
+      
+      <!-- Proprietary badge with tooltip -->
+      <div class="proprietary-badge" [title]="translate.t().footer.proprietaryMessage">
+        <span class="icon">🔒</span> {{ translate.t().footer.proprietary }}
+      </div>
+    </div>
+    
+    <div class="footer-right">
+      <a href="#" class="footer-link">{{ translate.t().footer.help }}</a>
+      <span class="separator">·</span>
+      <span class="lang-status">
+        <span class="icon">🌐</span> {{ translate.t().footer.language }}: {{ currentLanguageName() }}
+      </span>
+    </div>
+    
+  </div>
+</footer>
