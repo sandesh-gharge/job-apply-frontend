@@ -10,6 +10,7 @@ import { CoverLetterDocInfo } from '../entities/cover-letter';
 import { CvData } from '../entities/cv';
 import { selectAllJobs } from '../store/jobs/jobs.selectors';
 import { environment } from 'src/environments/environment';
+import { AIServiceInterface } from './ai-service/ai.service.interface';
 
 @Injectable({ providedIn: 'root' })
 export class JobsService {
@@ -20,6 +21,7 @@ export class JobsService {
 
   jobs = this.store.selectSignal(selectAllJobs);
   userid = this.store.selectSignal(selectUserID);
+  aiService = inject(AIServiceInterface);
 
   private jobDetails = new BehaviorSubject<JobDetails | null>(null);
   jobDetails$ = this.jobDetails.asObservable();
@@ -71,8 +73,7 @@ export class JobsService {
   }
 
   extractJobDetails(jobDescription: string): Observable<JobDetails> {
-    console.log("Sending job description to backend for extraction:", 'extract-job-data');
-    return this.http.post<JobDetails>(`${this.baseUrl}extract-job-data`, { job_description: jobDescription });
+    return this.aiService.extractJobData(jobDescription);
   }
 
   // ── Backend CRUD methods (used by NgRx effects) ──────────────

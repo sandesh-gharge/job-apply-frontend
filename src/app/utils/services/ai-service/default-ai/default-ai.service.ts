@@ -12,4 +12,8 @@ export class DefaultAiService implements AIServiceInterface {
   generate(prompt: string): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}generate`, { prompt });
   }
+
+  extractJobData(jobDescription: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}extract-job-data`, { jobDescription });
+  }
 }

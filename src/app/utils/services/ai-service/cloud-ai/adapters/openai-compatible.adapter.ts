@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -16,14 +17,13 @@ import { AiProvider, AiProviderConfig, AiRequest, AiResponse } from '../ai-provi
  * Endpoint: POST {apiUrl}/chat/completions
  * Docs: https://platform.openai.com/docs/api-reference/chat
  */
-export class OpenAiCompatibleAdapter implements AiAdapter {
-  constructor(
-    private http: HttpClient,
-    /** The logical provider label for the response metadata. */
-    private providerLabel: AiProvider = AiProvider.OpenAI
-  ) {}
+@Injectable()
+export class OpenAiCompatibleAdapter extends AiAdapter {
+  supports(provider: AiProvider): boolean {
+    return [AiProvider.OpenAI, AiProvider.Groq, AiProvider.Perplexity, AiProvider.Custom].includes(provider);
+  }
 
-  generate(config: AiProviderConfig, request: AiRequest): Observable<AiResponse> {
+  generate(request: AiRequest, config: AiProviderConfig, provider: AiProvider): Observable<AiResponse> {
     const { apiUrl, apiKey, modelName } = config;
 
     const body = {
@@ -48,7 +48,7 @@ export class OpenAiCompatibleAdapter implements AiAdapter {
       map(raw => ({
         text: raw?.choices?.[0]?.message?.content ?? '',
         raw,
-        provider: this.providerLabel,
+        provider: provider,
         model: raw?.model ?? modelName,
       } as AiResponse))
     );

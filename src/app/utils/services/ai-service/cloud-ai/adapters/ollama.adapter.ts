@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -10,10 +11,13 @@ import { AiProvider, AiProviderConfig, AiRequest, AiResponse } from '../ai-provi
  * Endpoint: POST {apiUrl}/api/chat
  * Docs: https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion
  */
-export class OllamaAdapter implements AiAdapter {
-  constructor(private http: HttpClient) {}
+@Injectable()
+export class OllamaAdapter extends AiAdapter {
+  supports(provider: AiProvider): boolean {
+    return provider === AiProvider.Ollama;
+  }
 
-  generate(config: AiProviderConfig, request: AiRequest): Observable<AiResponse> {
+  generate(request: AiRequest, config: AiProviderConfig, provider: AiProvider): Observable<AiResponse> {
     const { apiUrl, apiKey, modelName } = config;
 
     const body = {

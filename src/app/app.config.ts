@@ -11,6 +11,10 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './utils/interceptors/auth.interceptor';
 import { AIServiceInterface } from './utils/services/ai-service/ai.service.interface';
 import { DynamicAiService } from './utils/services/ai-service/dynamic-ai.service';
+import { AI_ADAPTERS } from './utils/services/ai-service/cloud-ai/ai-adapter.interface';
+import { OllamaAdapter } from './utils/services/ai-service/cloud-ai/adapters/ollama.adapter';
+import { AnthropicAdapter } from './utils/services/ai-service/cloud-ai/adapters/anthropic.adapter';
+import { OpenAiCompatibleAdapter } from './utils/services/ai-service/cloud-ai/adapters/openai-compatible.adapter';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,6 +27,9 @@ export const appConfig: ApplicationConfig = {
       console.log("Initializing authentication...");
       return store.dispatch(autoLogin());
     }),
-    { provide: AIServiceInterface, useClass: DynamicAiService }
+    { provide: AIServiceInterface, useClass: DynamicAiService },
+    { provide: AI_ADAPTERS, useClass: OllamaAdapter, multi: true },
+    { provide: AI_ADAPTERS, useClass: AnthropicAdapter, multi: true },
+    { provide: AI_ADAPTERS, useClass: OpenAiCompatibleAdapter, multi: true }
   ],
 };

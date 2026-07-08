@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, switchMap, map } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
+import { JobDetails } from '../../../entities/job-details';
 
 import {
   AiProvider,
@@ -11,10 +13,7 @@ import {
   PROVIDER_URL_HINTS,
   PROVIDER_MODEL_HINTS,
 } from './ai-provider.model';
-import { AiAdapter } from './ai-adapter.interface';
-import { AnthropicAdapter } from './adapters/anthropic.adapter';
-import { OpenAiCompatibleAdapter } from './adapters/openai-compatible.adapter';
-import { OllamaAdapter } from './adapters/ollama.adapter';
+import { AiAdapter, AI_ADAPTERS } from './ai-adapter.interface';
 import { AIServiceInterface } from '../ai.service.interface';
 import { Store } from '@ngrx/store';
 import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from '@app/utils/store/profile/profile.selector';
@@ -54,34 +53,49 @@ import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from
  * | Custom      | any other URL                    | `Authorization: Bearer` |
  */
 @Injectable({ providedIn: 'root' })
-export class AIService implements AIServiceInterface {
-  private http = inject(HttpClient);
+export class CloudAIService implements AIServiceInterface {
+  private adapters = inject(AI_ADAPTERS);
   private store = inject(Store);
+  private http = inject(HttpClient);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Public API
   // ─────────────────────────────────────────────────────────────────────────────
 
-  generate(prompt: string): Observable<any> {
+  generate(prompt: string): Observable<{ text: string }> {
+    const { adapter, config, provider } = this.resolveProvider();
+    return adapter.generate({ messages: [{ role: 'user', content: prompt }] }, config, provider).pipe(
+      map(res => ({
+        text: (res.text || '').replace(/[^a-zA-Z0-9\s."'?]/g, '')
+      }))
+    );
+  }
 
-    const apiUrl = this.store.selectSignal(selectProfileApiUrl)();
-    const apiKey = this.store.selectSignal(selectProfileApiKey)();
-    const modelName = this.store.selectSignal(selectProfileModelName)();
+  extractJobData(jobDescription: string): Observable<JobDetails> {
+    const { adapter, config, provider } = this.resolveProvider();
 
-    const config : AiProviderConfig = {
-      apiUrl: apiUrl ?? '',
-      apiKey: apiKey ?? '',
-      modelName: modelName ?? ''
-    }
-    const provider = this.detectProvider(config);
-    const validationError = this.validateConfig(config, provider);
-    if (validationError) {
-      return throwError(() => new Error(validationError));
-    }
-    
-    const adapter = this.resolveAdapter(provider);
-    return adapter.generate(config, { messages: [{ role: 'user', content: prompt }] });
-
+    return this.http.get(environment.extractJobDataPromptUrl, { responseType: 'text' }).pipe(
+      switchMap(promptTemplate => {
+        const prompt = promptTemplate.replace('[job_description]', jobDescription);
+        return adapter.generate({ messages: [{ role: 'user', content: prompt }] }, config, provider).pipe(
+          map(res => {
+            let text = res.text;
+            if (text.includes('```')) {
+              const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+              if (match) {
+                text = match[1];
+              }
+            }
+            try {
+              return JSON.parse(text) as JobDetails;
+            } catch (e) {
+              console.error('Failed to parse JobDetails JSON', e, text);
+              throw e;
+            }
+          })
+        );
+      })
+    );
   }
 
   /**
@@ -93,13 +107,9 @@ export class AIService implements AIServiceInterface {
    */
   generatev2(config: AiProviderConfig, request: AiRequest): Observable<AiResponse> {
     const provider = this.detectProvider(config);
-    const validationError = this.validateConfig(config, provider);
-    if (validationError) {
-      return throwError(() => new Error(validationError));
-    }
-
-    const adapter = this.resolveAdapter(provider);
-    return adapter.generate(config, request);
+    const adapter = this.adapters.find(a => a.supports(provider));
+    if (!adapter) throw new Error(`No adapter found for provider ${provider}`);
+    return adapter.generate(request, config, provider);
   }
 
   /**
@@ -156,43 +166,37 @@ export class AIService implements AIServiceInterface {
   // Private helpers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Return an adapter instance for the given {@link AiProvider}.
-   * Groq and Perplexity reuse the OpenAI-compatible adapter with their label.
-   */
-  private resolveAdapter(provider: AiProvider): AiAdapter {
-    switch (provider) {
-      case AiProvider.Anthropic:
-        return new AnthropicAdapter(this.http);
+  private resolveProvider() {
+    const apiUrl = this.store.selectSignal(selectProfileApiUrl)();
+    const apiKey = this.store.selectSignal(selectProfileApiKey)();
+    const modelName = this.store.selectSignal(selectProfileModelName)();
 
-      case AiProvider.Groq:
-        return new OpenAiCompatibleAdapter(this.http, AiProvider.Groq);
-
-      case AiProvider.Perplexity:
-        return new OpenAiCompatibleAdapter(this.http, AiProvider.Perplexity);
-
-      case AiProvider.Ollama:
-        return new OllamaAdapter(this.http);
-
-      case AiProvider.OpenAI:
-      case AiProvider.Custom:
-      default:
-        return new OpenAiCompatibleAdapter(this.http, provider);
+    const config: AiProviderConfig = {
+      apiUrl: apiUrl ?? '',
+      apiKey: apiKey ?? '',
+      modelName: modelName ?? ''
     }
+    const validationError = this.validateConfig(config);
+    if (validationError) {
+      throw new Error(validationError);
+    }
+
+    const provider = this.detectProvider(config);
+    const adapter = this.adapters.find(a => a.supports(provider));
+    if (!adapter) throw new Error(`No adapter found for provider ${provider}`);
+
+    return { adapter, config, provider };
   }
 
   /**
    * Basic sanity check on the config before hitting the network.
    * Returns an error message string if invalid, `null` if valid.
    */
-  private validateConfig(config: AiProviderConfig, provider?: AiProvider): string | null {
+  private validateConfig(config: AiProviderConfig): string | null {
     if (!config.apiUrl?.trim()) return 'AI API URL is required.';
     if (!config.modelName?.trim()) return 'AI model name is required.';
-    
-    const detected = provider ?? this.detectProvider(config);
-    if (detected !== AiProvider.Ollama && !config.apiKey?.trim()) {
-      return 'AI API key is required.';
-    }
+    if (!config.apiKey?.trim()) return 'AI API key is required.';
+
     return null;
   }
 }
