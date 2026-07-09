@@ -2,7 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { ProfileInfo } from "../entities/user";
 import { FileService } from "./file.service";
 import { HttpClient } from "@angular/common/http";
-import { environment } from "src/environments/environment";
+import { environment } from "@env/environment";
 import { firstValueFrom } from "rxjs";
 import { Store } from "@ngrx/store";
 import { selectUserID } from "../store/auth/auth.selectors";

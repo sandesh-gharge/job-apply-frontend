@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../store/auth/auth.selectors';
 import { Observable, firstValueFrom } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 
 /**
  * Service for uploading and managing files via the backend API.

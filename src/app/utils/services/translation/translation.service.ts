@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { fallbackEn, TranslationDictionary } from './fallback-en';
 
 export interface LanguageInfo {

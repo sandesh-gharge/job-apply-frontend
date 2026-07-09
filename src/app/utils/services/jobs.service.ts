@@ -9,7 +9,7 @@ import { ToastService } from './toast.service';
 import { CoverLetterDocInfo } from '../entities/cover-letter';
 import { CvData } from '../entities/cv';
 import { selectAllJobs } from '../store/jobs/jobs.selectors';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { AIServiceInterface } from './ai-service/ai.service.interface';
 
 @Injectable({ providedIn: 'root' })

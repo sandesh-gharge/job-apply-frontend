@@ -1,5 +1,5 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 
 /**
  * Attaches a Bearer token to every outgoing request that targets the backend API.

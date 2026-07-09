@@ -4,7 +4,7 @@ import { AuthService } from '@app/utils/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 
 @Component({
   selector: 'app-auth-callback',
