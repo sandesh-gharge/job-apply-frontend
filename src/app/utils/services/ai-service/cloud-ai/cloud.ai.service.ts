@@ -66,7 +66,7 @@ export class CloudAIService implements AIServiceInterface {
     const { adapter, config, provider } = this.resolveProvider();
     return adapter.generate({ messages: [{ role: 'user', content: prompt }] }, config, provider).pipe(
       map(res => ({
-        text: (res.text || '').replace(/[^a-zA-Z0-9\s."'?]/g, '')
+        text: (res.text || '').replace(/[^a-zA-Z0-9\s."'?,-]/g, '')
       }))
     );
   }

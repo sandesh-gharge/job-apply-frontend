@@ -19,4 +19,5 @@ Extract job details and send response strictly in JSON format as mentioned below
 }
 Rules:
 - Do NOT alter the JSON format
-- 
+- Response should be strictly in JSON format
+- No extra string or comment should be added
