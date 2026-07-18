@@ -1,10 +1,11 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { JobsService } from './jobs.service';
 import { TranslationService } from './translation/translation.service';
 import { JobDetails } from '@app/utils/entities/job-details';
+import { Store } from '@ngrx/store';
+import { setJobDetails, updateJobDetailsField } from '../store/apply-wizard/apply-wizard.actions';
+import { WizardTabId } from '../store/apply-wizard/apply-wizard.state';
 
 export type HomeTabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
-export type ApplyTabId = 'Fetch Job' | 'Cover Letter' | 'CV' | 'PDF Preview';
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
 
 export interface TourStep {
@@ -16,7 +17,7 @@ export interface TourStep {
   /** Which home-level tab to activate before this step */
   homeTab?: HomeTabId;
   /** Which apply-job sub-tab to activate before this step */
-  applyTab?: ApplyTabId;
+  applyTab?: WizardTabId;
   /** Optional side-effect to run when entering this step */
   onEnter?: () => void;
 }
@@ -63,7 +64,7 @@ Location: Berlin Mitte (Hybrid)`,
 
 @Injectable({ providedIn: 'root' })
 export class TourService {
-  private jobsService = inject(JobsService);
+  private store = inject(Store);
   public translate = inject(TranslationService);
 
   // ── State signals ─────────────────────────────────────────────────────────
@@ -72,7 +73,7 @@ export class TourService {
 
   // ── Tab signals (read by HomeComponent and ApplyJobComponent) ─────────────
   desiredHomeTab = signal<HomeTabId | null>(null);
-  desiredApplyTab = signal<ApplyTabId | null>(null);
+  desiredApplyTab = signal<WizardTabId | null>(null);
 
   // ── Step definitions ──────────────────────────────────────────────────────
   get steps(): TourStep[] {
@@ -117,8 +118,8 @@ export class TourService {
         applyTab: 'Fetch Job',
         onEnter: () => {
           // Inject mock data without calling the backend
-          this.jobsService.setJobDetails(MOCK_JOB);
-          this.jobsService.updateField('jobDescription', MOCK_JOB.jobDescription);
+          this.store.dispatch(setJobDetails({jobDetails : MOCK_JOB}));
+          this.store.dispatch(updateJobDetailsField({ key: 'jobDescription', value : MOCK_JOB.jobDescription}));
         },
       },
       {

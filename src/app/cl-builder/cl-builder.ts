@@ -1,19 +1,28 @@
-import { Component, signal, inject, Input, effect, OnInit } from '@angular/core';
+import { Component, signal, inject, computed, effect, untracked, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { Store } from '@ngrx/store';
 import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { JobDetails } from '../utils/entities/job-details';
-import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
-import { CoverLetterSection, CoverLetterDocInfo } from '../utils/entities/cover-letter';
+import { CoverLetterSection, CoverLetterDocInfo, CoverLetterInfo, defaultcl } from '../utils/entities/cover-letter';
 import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo, selectProfileUseDefaultApi } from '../utils/store/profile/profile.selector';
-import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
+import { saveNewCoverLetterInfo, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
 import { AIServiceInterface } from '../utils/services/ai-service/ai.service.interface';
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import {
+  selectJobDetails,
+  selectCoverLetterDetails,
+  selectCoverLetterInfo
+} from '../utils/store/apply-wizard/apply-wizard.selectors';
+import {
+  updateJobDetailsField,
+  setCoverLetterInfo,
+  clearCoverLetterInfo
+} from '../utils/store/apply-wizard/apply-wizard.actions';
 
 @Component({
   selector: 'app-cover-letter',
@@ -23,32 +32,20 @@ import { TranslationService } from '@app/utils/services/translation/translation.
 })
 export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
-  private jobsService = inject(JobsService);
   private store = inject(Store);
   private aiService = inject(AIServiceInterface);
   private clService = inject(CLService);
   public translate = inject(TranslationService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
-  jobDetails = this.jobsService.jobDetails$;
+  jobDetails$ = this.store.select(selectJobDetails);
   clInfoList = this.store.selectSignal(selectCoverLetterInfoList);
-  coverLetterInfo = this.clService.draftCoverLetter;
+  private storedInfo = this.store.selectSignal(selectCoverLetterInfo);
+  coverLetterInfo = computed(() => this.storedInfo() || defaultcl());
   useDefaultApi = this.store.selectSignal(selectProfileUseDefaultApi);
-
   userID = this.store.selectSignal(selectUserID);
 
-  meta = signal<CoverLetterDocInfo>({
-    applicantName: '',
-    applicantLocation: '',
-    applicantEmail: '',
-    companyName: '',
-    companyLocation: '',
-    contactName: '',
-    date: new Date().toISOString().split('T')[0],
-    role: '',
-    paragraphs: [],
-    signUrl: ''
-  });
+  meta = this.store.selectSignal(selectCoverLetterDetails);
 
   jobDescription = signal('');
 
@@ -68,48 +65,22 @@ export class CoverLetterComponent implements OnInit {
   }
 
   constructor() {
-    this.jobDetails.subscribe((j) => {
-      this.meta.update(m => ({
-        ...m,
-        companyName: j?.companyName || '',
-        companyLocation: j?.companyLocation || '',
-        role: j?.role || '',
-        contactName: j?.contactName || 'Hiring Manager'
-      }));
-      this.jobDescription.set(j?.jobDescription || '');
-    });
-
-    effect(() => {
-      const tempInfo = this.profileInfo();
-      if (tempInfo)
-        this.meta.update(m => (
-          {
-            ...m,
-            applicantName: tempInfo.firstName + ' ' + tempInfo.lastName,
-            applicantLocation: tempInfo.location,
-            applicantEmail: tempInfo.email
-          }))
-    });
-
-    effect(() => {
-      const cl = this.coverLetterInfo();
-      if (cl && cl.clData && cl.clData.sectionPrompts) {
-        this.meta.update(m => ({
-          ...m,
-          paragraphs: cl.clData.sectionPrompts.map(s => s.content)
-        }));
-      }
-    });
-
-    // Reactively load data when store is populated (e.g. after refresh)
+    // Reactively load saved CL version when store is populated (e.g. after refresh)
     const currentCL = this.store.selectSignal(selectCurrentCoverLetter);
     effect(() => {
       const current = currentCL();
       if (current && !this.hasLoadedInitialData) {
-        this.hasLoadedInitialData = true;
-        this.coverLetterInfo.set(current);
+        untracked(() => {
+          this.hasLoadedInitialData = true;
+          this.store.dispatch(setCoverLetterInfo({ coverLetterInfo: current }));
+        });
       }
     });
+  }
+
+  private updateCl(updater: (c: CoverLetterInfo) => CoverLetterInfo) {
+    const next = updater(this.coverLetterInfo());
+    this.store.dispatch(setCoverLetterInfo({ coverLetterInfo: next }));
   }
 
   hasLoadedInitialData = false;
@@ -167,7 +138,7 @@ export class CoverLetterComponent implements OnInit {
     }
 
     this.coverLetterTitle.set(title);
-    this.coverLetterInfo.update(c => ({ ...c, title }));
+    this.updateCl(c => ({ ...c, title }));
 
     if (this.titleDialogMode() === 'saveAs') {
       this.store.dispatch(saveNewCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
@@ -188,12 +159,12 @@ export class CoverLetterComponent implements OnInit {
 
   // ── Meta ───────────────────────────────────────────────────────
   updateField(field: keyof JobDetails, value: string) {
-    this.jobsService.updateField(field, value);
+    this.store.dispatch(updateJobDetailsField({ key: field as string, value }));
   }
 
   // ── Sections ───────────────────────────────────────────────────
   addSection() {
-    this.coverLetterInfo.update(info => ({
+    this.updateCl(info => ({
       ...info,
       clData: {
         ...info.clData,
@@ -206,7 +177,7 @@ export class CoverLetterComponent implements OnInit {
   }
 
   removeSection(id: string) {
-    this.coverLetterInfo.update(info => ({
+    this.updateCl(info => ({
       ...info,
       clData: {
         ...info.clData,
@@ -216,7 +187,7 @@ export class CoverLetterComponent implements OnInit {
   }
 
   updateSection(id: string, field: keyof CoverLetterSection, value: string) {
-    this.coverLetterInfo.update(info => ({
+    this.updateCl(info => ({
       ...info,
       clData: {
         ...info.clData,
@@ -228,7 +199,7 @@ export class CoverLetterComponent implements OnInit {
   }
 
   updateCommonPrompt(val: string) {
-    this.coverLetterInfo.update(info => ({
+    this.updateCl(info => ({
       ...info,
       clData: {
         ...info.clData,
@@ -275,7 +246,7 @@ export class CoverLetterComponent implements OnInit {
     const section = this.coverLetterInfo().clData.sectionPrompts.find(s => s.id === sectionId);
     if (!section) return;
 
-    this.coverLetterInfo.update(info => ({
+    this.updateCl(info => ({
       ...info,
       clData: {
         ...info.clData,
@@ -288,8 +259,8 @@ export class CoverLetterComponent implements OnInit {
     try {
       const pInfo = this.profileInfo();
       if (!pInfo) {
-        this.toast.show('Profile information not available. Cannot generate section.', 'error');
-        this.coverLetterInfo.update(info => ({
+        this.toast.show(this.translate.t().clBuilder.toastProfileMissing, 'error');
+        this.updateCl(info => ({
           ...info,
           clData: {
             ...info.clData,
@@ -308,7 +279,7 @@ export class CoverLetterComponent implements OnInit {
 
       const text = typeof data.text === 'string' ? data.text : data.text.toString();
 
-          this.coverLetterInfo.update(info => ({
+          this.updateCl(info => ({
             ...info,
             clData: {
               ...info.clData,
@@ -317,11 +288,11 @@ export class CoverLetterComponent implements OnInit {
               )
             }
           }));
-          this.toast.show(`"${section.title}" generated!`);
+          this.toast.show(this.translate.t().clBuilder.toastSectionGenerated);
 
 
         } catch {
-          this.coverLetterInfo.update(info => ({
+          this.updateCl(info => ({
             ...info,
             clData: {
               ...info.clData,
@@ -330,7 +301,7 @@ export class CoverLetterComponent implements OnInit {
               )
             }
           }));
-          this.toast.show('Generation failed. Try again.', 'error');
+          this.toast.show(this.translate.t().clBuilder.toastGenerationFailed, 'error');
         }
       }
 
@@ -354,7 +325,7 @@ export class CoverLetterComponent implements OnInit {
         try {
           const pInfo = this.profileInfo();
           if (!pInfo) {
-            this.toast.show('Profile information not available. Cannot generate full letter.', 'error');
+            this.toast.show(this.translate.t().clBuilder.toastProfileMissing, 'error');
             return;
           }
 
@@ -385,7 +356,7 @@ export class CoverLetterComponent implements OnInit {
             raw.replace(/```json|```/g, '').trim()
           );
 
-          this.coverLetterInfo.update(info => ({
+          this.updateCl(info => ({
             ...info,
             clData: {
               ...info.clData,
@@ -399,9 +370,9 @@ export class CoverLetterComponent implements OnInit {
           }));
 
           this.previewMode.set(true);
-          this.toast.show('Cover letter generated!');
+          this.toast.show(this.translate.t().clBuilder.toastFullLetterGenerated);
         } catch {
-          this.toast.show('Generation failed. Try again.', 'error');
+          this.toast.show(this.translate.t().clBuilder.toastGenerationFailed, 'error');
         } finally {
           this.generatingFull.set(false);
         }
@@ -409,25 +380,25 @@ export class CoverLetterComponent implements OnInit {
 
   // ── Preview ────────────────────────────────────────────────────
   get previewText(): string {
-        const m = this.meta();
-        const body = m.paragraphs.filter(Boolean).join('\n\n');
-        return [
-          m.applicantName,
-          m.applicantLocation,
-          '',
-          this.formatDisplayDate(m.date),
-          '',
-          m.companyName,
-          m.companyLocation,
-          '',
-          `Dear ${m.contactName || 'Hiring Team'},`,
-          '',
-          body,
-          '',
-          'Yours sincerely,',
-          m.applicantName
-        ].join('\n');
-      }
+    const m = this.meta();
+    const body = m.paragraphs.filter(Boolean).join('\n\n');
+    return [
+      m.applicantName,
+      m.applicantLocation,
+      '',
+      this.formatDisplayDate(m.date),
+      '',
+      m.companyName,
+      m.companyLocation,
+      '',
+      `Dear ${m.contactName || 'Hiring Team'},`,
+      '',
+      body,
+      '',
+      'Yours sincerely,',
+      m.applicantName
+    ].join('\n');
+  }
 
   async copyToClipboard() {
         await navigator.clipboard.writeText(this.previewText);
@@ -447,20 +418,20 @@ export class CoverLetterComponent implements OnInit {
         this.store.dispatch(selectCoverLetterVersion({ version: num }));
         const selected = this.clInfoList().find(v => v.version === num);
         if (selected) {
-          this.coverLetterInfo.set(selected);
+          this.store.dispatch(setCoverLetterInfo({ coverLetterInfo: selected }));
           this.coverLetterTitle.set(selected.title);
         }
       }
 
       clearCoverLetter() {
-        if (!confirm(this.translate.currentLang() === 'de' ? 'Möchten Sie alle Anschreiben-Daten löschen? Dies kann nicht rückgängig gemacht werden.' : 'Clear all Cover Letter data? This cannot be undone.')) return;
-        this.clService.clearDraft();
-        this.toast.show(this.translate.currentLang() === 'de' ? 'Anschreiben gelöscht.' : 'Cover Letter cleared.', 'info');
+        if (!confirm(this.translate.t().clBuilder.clearConfirm)) return;
+        this.store.dispatch(clearCoverLetterInfo());
+        this.toast.show(this.translate.t().clBuilder.toastCleared, 'info');
       }
 
       updateTitle(event: any) {
         const value = typeof event === 'string' ? event : event.target.value;
         this.coverLetterTitle.set(value);
-        this.coverLetterInfo.update(c => ({ ...c, title: value }));
+        this.updateCl(c => ({ ...c, title: value }));
       }
     }

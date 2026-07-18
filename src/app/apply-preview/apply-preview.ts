@@ -1,4 +1,4 @@
-import { Component, signal, inject, Input, effect } from '@angular/core';
+import { Component, signal, inject, computed, effect } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { JobsService } from '@app/utils/services/jobs.service';
@@ -7,9 +7,13 @@ import { CoverLetterDocInfo } from '@app/utils/entities/cover-letter';
 import { CLService } from '@app/utils/services/cl.service';
 import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
-import { CvService } from '@app/utils/services/cv.service';
-import { addJob } from '@app/utils/store/jobs/jobs.actions';
+import { defaultCV } from '@app/utils/entities/cv';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import {
+  selectCoverLetterDetails,
+  selectJobDetails,
+  selectCvDetails
+} from '@app/utils/store/apply-wizard/apply-wizard.selectors';
 
 @Component({
   selector: 'app-pdf-preview',
@@ -17,58 +21,54 @@ import { TranslationService } from '@app/utils/services/translation/translation.
   styleUrl: './apply-preview.scss'
 })
 export class ApplyPreviewComponent {
-  
 
   private jobsService = inject(JobsService);
   private toast = inject(ToastService);
   private sanitizer = inject(DomSanitizer);
-  private clService = inject(CLService);
-  private cvService = inject(CvService);
   public translate = inject(TranslationService);
+  private store = inject(Store);
+
   private cvPreviewUrl = signal<SafeResourceUrl | null>(null);
   private clPreviewUrl = signal<SafeResourceUrl | null>(null);
-
   private clHtml = signal<string>('');
   private cvHtml = signal<string>('');
   private cvLoading = signal(false);
   private clLoading = signal(false);
-  private store = inject(Store);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
-  cvInfo = this.cvService.draftCV;
+  private storedCv = this.store.selectSignal(selectCvDetails);
+  cvInfo = computed(() => this.storedCv() || defaultCV());
 
-  coverLetterData: CoverLetterDocInfo = {
-    applicantName: this.profileInfo()?.firstName + ' ' + this.profileInfo()?.lastName || '',
-    applicantLocation: this.profileInfo()?.location || '',
-    applicantEmail: this.profileInfo()?.email || '',
-    companyName: '',
-    companyLocation: '',
-    contactName: '',
-    date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }),
-    role: '',
-    paragraphs: [],
-    signUrl: ''
-  };
+  /**
+   * Cover letter document info from the store — persists across tab switches.
+   * Falls back to profile-derived defaults when the store has no data yet.
+   */
+  private storedCl = this.store.selectSignal(selectCoverLetterDetails);
+  private storedJob = this.store.selectSignal(selectJobDetails);
 
-  
+  coverLetterData = computed<CoverLetterDocInfo>(() => {
+    const stored = this.storedCl();
+    const job = this.storedJob();
+    const profile = this.profileInfo();
 
-  constructor() {
-    this.jobsService.jobDetails$.subscribe((j) => {
-      if (j) {
-        this.coverLetterData.companyName = j.companyName || '';
-        this.coverLetterData.companyLocation = j.companyLocation || '';
-        this.coverLetterData.role = j.role || '';
-        this.coverLetterData.contactName = j.contactName || 'Hiring Manager';
-      }
-    });
+    if (stored) return stored;
 
-    effect(() => {
-      const cl = this.clService.draftCoverLetter();
-      if (cl && cl.clData && cl.clData.sectionPrompts) {
-        this.coverLetterData.paragraphs = cl.clData.sectionPrompts.map(s => s.content.trim()).filter(p => p.length > 0);
-      }
-    });
-  }
+    // Build a fallback from available store data when CL meta hasn't been set yet
+    return {
+      applicantName: profile ? `${profile.firstName} ${profile.lastName}`.trim() : '',
+      applicantLocation: profile?.location || '',
+      applicantEmail: profile?.email || '',
+      companyName: job?.companyName || '',
+      companyLocation: job?.companyLocation || '',
+      contactName: job?.contactName || 'Hiring Manager',
+      date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }),
+      role: job?.role || '',
+      paragraphs: [],
+      signUrl: ''
+    };
+  });
+
+  constructor() {}
 
   // Getters for template access
   get cvPreviewUrl$() { return this.cvPreviewUrl; }
@@ -87,7 +87,7 @@ export class ApplyPreviewComponent {
       this.clPreviewUrl.set(null);
     }
 
-    const data = type === 'cv' ? this.cvInfo().cvData : this.coverLetterData;
+    const data = type === 'cv' ? this.cvInfo().cvData : this.coverLetterData();
 
     try {
       const html = await firstValueFrom(this.jobsService.fetchPreview(type, data, this.profileInfo()?.id));

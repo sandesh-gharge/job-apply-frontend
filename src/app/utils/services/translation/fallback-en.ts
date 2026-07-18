@@ -332,7 +332,13 @@ export const fallbackEn = {
       placeholderTitle: 'e.g. Cover Letter - Senior Developer',
       renameBtn: 'Rename',
       saveAsBtn: 'Save As'
-    }
+    },
+    clearConfirm: 'Clear all Cover Letter data? This cannot be undone.',
+    toastCleared: 'Cover Letter cleared.',
+    toastSectionGenerated: 'Section generated!',
+    toastFullLetterGenerated: 'Cover letter generated!',
+    toastGenerationFailed: 'Generation failed. Try again.',
+    toastProfileMissing: 'Profile information not available.'
   },
   profile: {
     title: 'Profile Information',
@@ -443,7 +449,16 @@ export const fallbackEn = {
     btnNextPreview: 'Next: Preview →',
     toastJobLoaded: 'Job description loaded! Extracting details...',
     toastFetchFailed: 'Failed to load job description',
-    toastDataExtracted: 'Data extracted for cover letter!'
+    toastDataExtracted: 'Data extracted for cover letter!',
+    toastExtractFailed: 'Failed to extract job data',
+    loadingFetchJob: 'Loading job description...',
+    loadingScrapeJob: 'Scraping job data from link...',
+    loadingExtractData: 'Extracting job data with AI...',
+    loadingCvPreview: 'Generating CV preview...',
+    loadingClPreview: 'Generating Cover Letter preview...',
+    loadingCvDownload: 'CV download in progress...',
+    loadingClDownload: 'Cover Letter download in progress...',
+    loadingApplyJob: 'Saving application...'
   },
   tour: {
     step: 'Step',

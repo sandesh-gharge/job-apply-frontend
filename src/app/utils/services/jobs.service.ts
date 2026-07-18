@@ -1,5 +1,5 @@
-import { Injectable, inject, effect } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import { JobDetails } from '@app/utils/entities/job-details';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs';
@@ -23,44 +23,7 @@ export class JobsService {
   userid = this.store.selectSignal(selectUserID);
   aiService = inject(AIServiceInterface);
 
-  private jobDetails = new BehaviorSubject<JobDetails | null>(null);
-  jobDetails$ = this.jobDetails.asObservable();
-
-  setDefaultJobDetails() {
-    this.jobDetails.next({
-      id: '',
-      userId: this.userid(),
-      companyName: '',
-      role: '',
-      companyLocation: '',
-      appliedDate: new Date().toISOString().split('T')[0],
-      status: 'Open',
-      salary: '',
-      contactName: '',
-      jobUrl: '',
-      jobDescription: '',
-      coverLetterPdfUrl: '',
-      cvPdfUrl: ''
-    });
-  }
-  setJobDetails(details: JobDetails) {
-    this.jobDetails.next(details);
-  }
-
-  updateField<K extends keyof JobDetails>(
-    key: K,
-    value: JobDetails[K]
-  ) {
-    const current = this.jobDetails.value;
-
-    this.jobDetails.next({
-      ...(current || {} as JobDetails),
-      [key]: value
-    } as JobDetails);
-  }
-
   constructor() {
-    this.setDefaultJobDetails();
   }
 
   loadJobs(): Observable<JobDetails[]> {
@@ -136,8 +99,7 @@ export class JobsService {
     };
   }
 
-  applyAndSaveJob(cvData?: CvData, coverLetterData?: CoverLetterDocInfo): Observable<any> {
-    const jobDetails = this.jobDetails.value;
+  applyAndSaveJob(cvData?: CvData, coverLetterData?: CoverLetterDocInfo, jobDetails?: JobDetails | null): Observable<any> {
     if (!jobDetails) throw new Error('No job details found.');
 
     let hasMissingFields = false;

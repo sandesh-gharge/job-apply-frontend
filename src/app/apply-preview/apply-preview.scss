@@ -108,7 +108,12 @@
           border-radius: 6px;
           font-size: 0.8rem;
           cursor: pointer;
-          transition: background-color 0.2s;
+          transition: background-color 0.2s, opacity 0.2s;
+
+          &:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+          }
         }
 
         .btn-preview {
@@ -118,9 +123,9 @@
         }
 
         .btn-download {
-          background-color: var(--text-secondary);
+          background-color: var(--primary);
           color: white;
-          &:hover { background-color: var(--text-primary); }
+          &:hover { background-color: var(--primary-hover); }
         }
       }
     }

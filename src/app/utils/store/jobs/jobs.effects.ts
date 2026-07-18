@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap, from } from 'rxjs';
+import { catchError, map, of, switchMap, from, withLatestFrom } from 'rxjs';
 import { JobsService } from '../../services/jobs.service';
 import { ToastService } from '../../services/toast.service';
 import { loginSuccess } from '../auth/auth.actions';
@@ -20,12 +20,15 @@ import {
   applyAndSaveJob,
   applyJob
 } from './jobs.actions';
+import { Store } from '@ngrx/store';
+import { selectJobDetails } from '../apply-wizard/apply-wizard.selectors';
 
 @Injectable()
 export class JobsEffects {
   private actions$ = inject(Actions);
   private jobsService = inject(JobsService);
   private toastService = inject(ToastService);
+  private store = inject(Store);
 
   loadJobs$ = createEffect(() =>
     this.actions$.pipe(
@@ -88,8 +91,9 @@ export class JobsEffects {
   applyJob$ = createEffect(() =>
     this.actions$.pipe(
       ofType(applyJob),
-      switchMap(() =>
-        this.jobsService.applyAndSaveJob().pipe(
+      withLatestFrom(this.store.select(selectJobDetails)),
+      switchMap(([_, jobDetails]) =>
+        this.jobsService.applyAndSaveJob(undefined, undefined, jobDetails).pipe(
           map((savedJob) => {
             this.toastService.show('Application applied successfully!');
             return addJobSuccess({ job: savedJob });

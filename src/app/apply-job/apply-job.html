@@ -26,7 +26,7 @@
 
       <div class="url-row">
         <input class="url-input" type="url" [placeholder]="translate.t().applyWizard.placeholderUrl"
-          [ngModel]="jobUrl()" (ngModelChange)="jobUrl.set($event)"
+          [ngModel]="jobUrl()" (ngModelChange)="updateJobUrl($event)"
           (keydown.enter)="fetchJob()"
           data-tour="tour-url-input" />
         <button class="btn-fetch" (click)="fetchJob()" [disabled]="fetchLoading() || !jobUrl().trim()">
@@ -45,7 +45,7 @@
         <label>{{ translate.t().applyWizard.labelDescription }}</label>
         <textarea class="jd-textarea" rows="18"
           [placeholder]="translate.t().applyWizard.placeholderDescription"
-          [ngModel]="jobDescription()" (ngModelChange)="updatejobDescription($event)"
+          [ngModel]="jobDescription()" (ngModelChange)="updateJobDescription($event)"
           data-tour="tour-jd-textarea"></textarea>
       </div>
 

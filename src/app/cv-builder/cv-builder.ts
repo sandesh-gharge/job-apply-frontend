@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed, Input, OnInit, DestroyRef, effect } from '@angular/core';
+import { Component, signal, inject, computed, Input, OnInit, effect, untracked } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
@@ -6,10 +6,12 @@ import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, Cv
 import { Store } from '@ngrx/store';
 import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { selectCurrentCV, selectCVInfoList } from '../utils/store/cv/cv.selectors';
-import { saveNewCVInfo, saveNewCVInfoSuccess, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
+import { saveNewCVInfo, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
 import { CvService } from '@app/utils/services/cv.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { selectProfileImageUrl } from '@app/utils/store/profile/profile.selector';
+import { setCvDetails, clearCvDetails } from '@app/utils/store/apply-wizard/apply-wizard.actions';
+import { selectCvDetails } from '@app/utils/store/apply-wizard/apply-wizard.selectors';
 
 
 
@@ -30,7 +32,8 @@ export class CvBuilderComponent implements OnInit {
   private cvService = inject(CvService);
   public translate = inject(TranslationService);
 
-  cv = this.cvService.draftCV;
+  private storedCv = this.store.selectSignal(selectCvDetails);
+  cv = computed(() => this.storedCv() || defaultCV());
   cvInfoList = this.store.selectSignal(selectCVInfoList);
   profileImageUrl = this.store.selectSignal(selectProfileImageUrl)
   userID = this.store.selectSignal(selectUserID);
@@ -43,10 +46,17 @@ export class CvBuilderComponent implements OnInit {
     effect(() => {
       const current = currentCV();
       if (current && !this.hasLoadedInitialData) {
-        this.hasLoadedInitialData = true;
-        this.cv.set(current);
+        untracked(() => {
+          this.hasLoadedInitialData = true;
+          this.store.dispatch(setCvDetails({ cvDetails: current }));
+        });
       }
     });
+  }
+
+  private updateCv(updater: (c: CVInfo) => CVInfo) {
+    const next = updater(this.cv());
+    this.store.dispatch(setCvDetails({ cvDetails: next }));
   }
 
   ngOnInit(): void {
@@ -63,7 +73,7 @@ export class CvBuilderComponent implements OnInit {
       ...(groups.find(g => g.category === 'Monitoring Tools')?.skills ?? []),
       ...(groups.find(g => g.category === 'Cloud Platforms')?.skills ?? []),
     ];
-    this.cv.update(c => ({
+    this.updateCv(c => ({
       ...c,
       cvData: {
         ...c.cvData,
@@ -176,7 +186,7 @@ export class CvBuilderComponent implements OnInit {
       return;
     }
 
-    this.cv.update(c => ({ ...c, title }));
+    this.updateCv(c => ({ ...c, title }));
 
     if (this.titleDialogMode() === 'saveAs') {
       this.store.dispatch(saveNewCVInfo({ cvInfo: this.cv() }));
@@ -197,7 +207,7 @@ export class CvBuilderComponent implements OnInit {
 
   clearCv() {
     if (!confirm(this.translate.t().cvBuilder.clearConfirm)) return;
-    this.cvService.clearDraft();
+    this.store.dispatch(clearCvDetails());
     this.toast.show(this.translate.t().cvBuilder.toastCleared, 'info');
   }
 
@@ -212,20 +222,20 @@ export class CvBuilderComponent implements OnInit {
     if (Number.isNaN(num)) return;
     this.store.dispatch(selectCVVersion({ version: num }));
     const found = this.cvInfoList().find(c => c.version === num);
-    if (found) this.cv.set(found);
+    if (found) this.store.dispatch(setCvDetails({ cvDetails: found }));
   }
 
   updateTitle(field: string, value: string) {
-    this.cv.update(c => ({ ...c, [field]: value }))
+    this.updateCv(c => ({ ...c, [field]: value }))
   }
   updatePersonal(field: string, value: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, [field]: value } } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, [field]: value } } }));
   }
   updateLink(field: string, value: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, links: { ...c.cvData.personalInfo.links, [field]: value } } } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, links: { ...c.cvData.personalInfo.links, [field]: value } } } }));
   }
   updateSummary(value: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, summary: value } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, summary: value } }));
   }
 
   addLanguage() {
@@ -233,7 +243,7 @@ export class CvBuilderComponent implements OnInit {
     const prof = this.newLanguageProficiency();
     if (!name || !prof) return;
 
-    this.cv.update(c => {
+    this.updateCv(c => {
       const personalInfo = c.cvData.personalInfo;
       const languages = personalInfo.languages ? [...personalInfo.languages] : [];
       if (languages.some(l => l.language.toLowerCase() === name.toLowerCase())) {
@@ -257,7 +267,7 @@ export class CvBuilderComponent implements OnInit {
   }
 
   removeLanguage(idx: number) {
-    this.cv.update(c => {
+    this.updateCv(c => {
       const personalInfo = c.cvData.personalInfo;
       const languages = personalInfo.languages ? [...personalInfo.languages] : [];
       languages.splice(idx, 1);
@@ -278,10 +288,10 @@ export class CvBuilderComponent implements OnInit {
   addSkillToList(field: keyof Omit<CvSkills, 'languages'>, value: string) {
     const v = value.trim();
     if (!v) return;
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: [...c.cvData.skills[field] as string[], v] } } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: [...c.cvData.skills[field] as string[], v] } } }));
   }
   removeSkillFromList(field: keyof Omit<CvSkills, 'languages'>, idx: number) {
-    this.cv.update(c => {
+    this.updateCv(c => {
       const arr = [...c.cvData.skills[field] as string[]];
       arr.splice(idx, 1);
       return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
@@ -291,107 +301,107 @@ export class CvBuilderComponent implements OnInit {
   // ── Experience ─────────────────────────────────────────────────
   addExperience() {
     const exp: CvExperience = { id: makeId(), jobTitle: '', company: '', location: '', startDate: '', endDate: '', current: false, responsibilities: [], include: true };
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: [exp, ...c.cvData.experience] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, experience: [exp, ...c.cvData.experience] } }));
   }
   removeExperience(id: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.filter(e => e.id !== id) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.filter(e => e.id !== id) } }));
   }
   updateExp(id: string, field: string, value: any) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === id ? { ...e, [field]: value } : e) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === id ? { ...e, [field]: value } : e) } }));
   }
   addResponsibility(expId: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: [...e.responsibilities, { id: makeId(), text: '', include: true }] } : e) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: [...e.responsibilities, { id: makeId(), text: '', include: true }] } : e) } }));
   }
   removeResponsibility(expId: string, rId: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.filter(r => r.id !== rId) } : e) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.filter(r => r.id !== rId) } : e) } }));
   }
   updateResponsibility(expId: string, rId: string, field: string, value: any) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.map(r => r.id === rId ? { ...r, [field]: value } : r) } : e) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.map(r => r.id === rId ? { ...r, [field]: value } : r) } : e) } }));
   }
 
   // ── Education ─────────────────────────────────────────────────
   addEducation() {
     const edu: CvEducation = { id: makeId(), degree: '', fieldOfStudy: '', institution: '', location: '', startDate: '', endDate: '', include: true };
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, education: [edu, ...c.cvData.education] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, education: [edu, ...c.cvData.education] } }));
   }
-  removeEducation(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, education: c.cvData.education.filter(e => e.id !== id) } })); }
-  updateEdu(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, education: c.cvData.education.map(e => e.id === id ? { ...e, [field]: value } : e) } })); }
+  removeEducation(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, education: c.cvData.education.filter(e => e.id !== id) } })); }
+  updateEdu(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, education: c.cvData.education.map(e => e.id === id ? { ...e, [field]: value } : e) } })); }
 
   // ── Projects ──────────────────────────────────────────────────
   addProject() {
     const p: CvProject = { id: makeId(), title: '', description: '', technologies: [], role: '', startDate: '', endDate: '', link: '', include: true };
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: [p, ...c.cvData.projects] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: [p, ...c.cvData.projects] } }));
   }
-  removeProject(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.filter(p => p.id !== id) } })); }
-  updateProject(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => p.id === id ? { ...p, [field]: value } : p) } })); }
+  removeProject(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.filter(p => p.id !== id) } })); }
+  updateProject(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => p.id === id ? { ...p, [field]: value } : p) } })); }
   addProjectTech(id: string, val: string) {
     const v = val.trim(); if (!v) return;
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => p.id === id ? { ...p, technologies: [...p.technologies, v] } : p) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => p.id === id ? { ...p, technologies: [...p.technologies, v] } : p) } }));
   }
   removeProjectTech(id: string, idx: number) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => { if (p.id !== id) return p; const t = [...p.technologies]; t.splice(idx, 1); return { ...p, technologies: t }; }) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => { if (p.id !== id) return p; const t = [...p.technologies]; t.splice(idx, 1); return { ...p, technologies: t }; }) } }));
   }
 
   // ── Certifications ────────────────────────────────────────────
   addCertification() {
     const cert: CvCertification = { id: makeId(), name: '', issuer: '', issueDate: '', expiryDate: '', credentialId: '', credentialUrl: '', include: true };
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, certifications: [cert, ...c.cvData.certifications] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, certifications: [cert, ...c.cvData.certifications] } }));
   }
-  removeCertification(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, certifications: c.cvData.certifications.filter(x => x.id !== id) } })); }
-  updateCert(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, certifications: c.cvData.certifications.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
+  removeCertification(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, certifications: c.cvData.certifications.filter(x => x.id !== id) } })); }
+  updateCert(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, certifications: c.cvData.certifications.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Awards ────────────────────────────────────────────────────
   addAward() {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, awards: [{ id: makeId(), title: '', issuer: '', date: '', description: '', include: true }, ...c.cvData.awards] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, awards: [{ id: makeId(), title: '', issuer: '', date: '', description: '', include: true }, ...c.cvData.awards] } }));
   }
-  removeAward(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, awards: c.cvData.awards.filter(x => x.id !== id) } })); }
-  updateAward(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, awards: c.cvData.awards.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
+  removeAward(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, awards: c.cvData.awards.filter(x => x.id !== id) } })); }
+  updateAward(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, awards: c.cvData.awards.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Publications ──────────────────────────────────────────────
   addPublication() {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, publications: [{ id: makeId(), title: '', publisher: '', date: '', link: '', description: '', include: true }, ...c.cvData.publications] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, publications: [{ id: makeId(), title: '', publisher: '', date: '', link: '', description: '', include: true }, ...c.cvData.publications] } }));
   }
-  removePublication(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, publications: c.cvData.publications.filter(x => x.id !== id) } })); }
-  updatePub(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, publications: c.cvData.publications.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
+  removePublication(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, publications: c.cvData.publications.filter(x => x.id !== id) } })); }
+  updatePub(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, publications: c.cvData.publications.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Volunteer ─────────────────────────────────────────────────
   addVolunteer() {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: [{ id: makeId(), role: '', organization: '', location: '', startDate: '', endDate: '', description: '', include: true }, ...c.cvData.volunteerExperience] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: [{ id: makeId(), role: '', organization: '', location: '', startDate: '', endDate: '', description: '', include: true }, ...c.cvData.volunteerExperience] } }));
   }
-  removeVolunteer(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: c.cvData.volunteerExperience.filter(x => x.id !== id) } })); }
-  updateVol(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: c.cvData.volunteerExperience.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
+  removeVolunteer(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: c.cvData.volunteerExperience.filter(x => x.id !== id) } })); }
+  updateVol(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: c.cvData.volunteerExperience.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Interests ─────────────────────────────────────────────────
   addInterest() {
     const v = this.newInterest().trim(); if (!v) return;
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, interests: [...c.cvData.interests, v] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, interests: [...c.cvData.interests, v] } }));
     this.newInterest.set('');
   }
-  removeInterest(idx: number) { this.cv.update(c => { const a = [...c.cvData.interests]; a.splice(idx, 1); return { ...c, cvData: { ...c.cvData, interests: a } }; }); }
+  removeInterest(idx: number) { this.updateCv(c => { const a = [...c.cvData.interests]; a.splice(idx, 1); return { ...c, cvData: { ...c.cvData, interests: a } }; }); }
 
   // ── References ────────────────────────────────────────────────
   addReference() {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, references: [{ id: makeId(), name: '', position: '', company: '', email: '', phone: '', include: true }, ...c.cvData.references] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, references: [{ id: makeId(), name: '', position: '', company: '', email: '', phone: '', include: true }, ...c.cvData.references] } }));
   }
-  removeReference(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, references: c.cvData.references.filter(x => x.id !== id) } })); }
-  updateRef(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, references: c.cvData.references.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
+  removeReference(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, references: c.cvData.references.filter(x => x.id !== id) } })); }
+  updateRef(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, references: c.cvData.references.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Custom Sections ───────────────────────────────────────────
   addCustomSection() {
     const sec: CvCustomSection = { id: makeId(), sectionTitle: 'New Section', include: true, items: [] };
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: [...c.cvData.customSections, sec] } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, customSections: [...c.cvData.customSections, sec] } }));
     this.sections.update(s => s.map(x => x.id === 'custom' ? { ...x, include: true, collapsed: false } : x));
   }
-  removeCustomSection(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.filter(x => x.id !== id) } })); }
-  updateCustomSection(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
+  removeCustomSection(id: string) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.filter(x => x.id !== id) } })); }
+  updateCustomSection(id: string, field: string, value: any) { this.updateCv(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
   addCustomItem(secId: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: [...x.items, { id: makeId(), text: '', include: true }] } : x) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: [...x.items, { id: makeId(), text: '', include: true }] } : x) } }));
   }
   removeCustomItem(secId: string, itemId: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: x.items.filter(i => i.id !== itemId) } : x) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: x.items.filter(i => i.id !== itemId) } : x) } }));
   }
   updateCustomItem(secId: string, itemId: string, value: string) {
-    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: x.items.map(i => i.id === itemId ? { ...i, text: value } : i) } : x) } }));
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: x.items.map(i => i.id === itemId ? { ...i, text: value } : i) } : x) } }));
   }
 
   // ── Sections management ───────────────────────────────────────
@@ -436,7 +446,7 @@ export class CvBuilderComponent implements OnInit {
   onItemDrop(field: string, toIdx: number) {
     const ctx = this.dragListContext();
     if (!ctx || ctx.field !== field || ctx.fromIdx === toIdx) { this.dragListContext.set(null); return; }
-    this.cv.update(c => {
+    this.updateCv(c => {
       const cvData = { ...c.cvData } as any;
       const arr = [...cvData[field]];
       const [item] = arr.splice(ctx.fromIdx, 1);
@@ -465,7 +475,7 @@ export class CvBuilderComponent implements OnInit {
     e.stopPropagation();
     const ctx = this.respDragContext();
     if (!ctx || ctx.expId !== expId || ctx.fromIdx === toIdx) { this.respDragContext.set(null); return; }
-    this.cv.update(c => ({
+    this.updateCv(c => ({
       ...c,
       cvData: {
         ...c.cvData,

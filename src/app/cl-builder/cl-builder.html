@@ -49,32 +49,32 @@
         <div class="field">
           <label>{{ translate.t().clBuilder.companyName }}</label>
           <input type="text" [placeholder]="translate.t().clBuilder.placeholderCompanyName"
-            [ngModel]="(jobDetails | async)?.companyName" (ngModelChange)="updateField('companyName', $event)" />
+            [ngModel]="(jobDetails$ | async)?.companyName" (ngModelChange)="updateField('companyName', $event)" />
         </div>
         <div class="field">
           <label>{{ translate.t().clBuilder.companyLocation }}</label>
           <input type="text" [placeholder]="translate.t().clBuilder.placeholderCompanyLocation"
-            [ngModel]="(jobDetails | async)?.companyLocation" (ngModelChange)="updateField('companyLocation', $event)" />
+            [ngModel]="(jobDetails$ | async)?.companyLocation" (ngModelChange)="updateField('companyLocation', $event)" />
         </div>
         <div class="field">
           <label>{{ translate.t().clBuilder.role }}</label>
           <input type="text" [placeholder]="translate.t().clBuilder.placeholderRole"
-            [ngModel]="(jobDetails | async)?.role" (ngModelChange)="updateField('role', $event)" />
+            [ngModel]="(jobDetails$ | async)?.role" (ngModelChange)="updateField('role', $event)" />
         </div>
         <div class="field">
           <label>{{ translate.t().clBuilder.hiringManager }}</label>
           <input type="text" [placeholder]="translate.t().clBuilder.placeholderHiringManager"
-            [ngModel]="(jobDetails | async)?.contactName" (ngModelChange)="updateField('contactName', $event)" />
+            [ngModel]="(jobDetails$ | async)?.contactName" (ngModelChange)="updateField('contactName', $event)" />
         </div>
         <div class="field">
           <label>{{ translate.t().jobTracker.formSalary }}</label>
           <input type="text" [placeholder]="translate.t().jobTracker.placeholderSalary"
-            [ngModel]="(jobDetails | async)?.salary" (ngModelChange)="updateField('salary', $event)" />
+            [ngModel]="(jobDetails$ | async)?.salary" (ngModelChange)="updateField('salary', $event)" />
         </div>
         <div class="field">
           <label>{{ translate.t().clBuilder.date }}</label>
           <input type="date"
-            [ngModel]="(jobDetails | async)?.appliedDate" (ngModelChange)="updateField('appliedDate', $event)" />
+            [ngModel]="(jobDetails$ | async)?.appliedDate" (ngModelChange)="updateField('appliedDate', $event)" />
         </div>
       </div>
     </div>
@@ -178,8 +178,8 @@
           <div class="letter-date">{{ formatDisplayDate(meta().date) }}</div>
         </div>
         <div class="letter-recipient">
-          <div>{{ (jobDetails | async)?.companyName }}</div>
-          <div>{{ (jobDetails | async)?.companyLocation }}</div>
+          <div>{{ (jobDetails$ | async)?.companyName }}</div>
+          <div>{{ (jobDetails$ | async)?.companyLocation }}</div>
         </div>
         <div class="letter-salutation">
           {{ translate.t().clBuilder.salutationPlaceholder }}
