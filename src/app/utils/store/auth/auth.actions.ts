@@ -24,3 +24,7 @@ export const changePassword = createAction(
 export const logout = createAction('[Auth] Logout');
 
 export const autoLogin = createAction('[Auth] Auto Login');
+
+export const autoLoginSuccess = createAction('[Auth] Auto Login Success');
+
+export const autoLoginFailure = createAction('[Auth] Auto Login Failure');

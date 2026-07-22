@@ -1,8 +1,9 @@
 <div class="login-page">
   <div class="lang-selector-container">
-    <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)" class="lang-select">
+    <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)"
+      class="lang-select">
       @for (lang of translate.languages(); track lang.code) {
-        <option [value]="lang.code" [selected]="translate.currentLang() === lang.code">{{ lang.name }}</option>
+      <option [value]="lang.code" [selected]="translate.currentLang() === lang.code">{{ lang.name }}</option>
       }
     </select>
   </div>
@@ -18,42 +19,39 @@
     <form [formGroup]="loginFormGroup" (ngSubmit)="onSubmit()">
       <div class="field">
         <label for="email">{{ translate.t().login.emailLabel }}</label>
-        <input
-          id="email"
-          type="email"
-          [placeholder]="translate.t().login.emailPlaceholder"
-          [formControl]="email"
-          name="email"
-          required
-        />
+        <input id="email" type="email" [placeholder]="translate.t().login.emailPlaceholder" [formControl]="email"
+          name="email" required />
       </div>
       <div class="field">
         <label for="password">{{ translate.t().login.passwordLabel }}</label>
-        <input
-          id="password"
-          type="password"
-          [placeholder]="translate.t().login.passwordPlaceholder"
-          [formControl]="password"
-          name="password"
-          required
-        />
+        <input id="password" type="password" [placeholder]="translate.t().login.passwordPlaceholder"
+          [formControl]="password" name="password" required />
       </div>
 
       @if (error()) {
-        <div class="error-msg">{{ error() }}</div>
+      <div class="error-msg">{{ error() }}</div>
+      }
+
+      @if (loading()) {
+      <div class="status-msg">{{ translate.t().login.loggingInProgress }}</div>
+      } @else if (autoLoginLoading()) {
+      <div class="status-msg">{{ translate.t().login.autoLoginInProgress }}</div>
+      } @else if (profileLoading()) {
+      <div class="status-msg">{{ translate.t().login.fetchingProfileData }}</div>
       }
 
       @if (password.errors) {
-        @if (password.errors['minlength']) {
-          <div class="error-msg">{{ translate.t().login.passwordPlaceholder }}</div>
-        }
+      @if (password.errors['minlength']) {
+      <div class="error-msg">{{ translate.t().login.passwordPlaceholder }}</div>
+      }
       }
 
-      <button type="submit" class="btn-primary" [disabled]="loading()">
-        @if (loading()) {
-          <span class="spinner"></span> {{ translate.t().login.signingIn }}
+      <button type="submit" class="btn-primary" [disabled]="isBusy()">
+        @if (isBusy()) {
+        <span class="spinner"></span>
+        {{ translate.t().login.signingIn }}
         } @else {
-          {{ translate.t().login.signInBtn }}
+        {{ translate.t().login.signInBtn }}
         }
       </button>
     </form>

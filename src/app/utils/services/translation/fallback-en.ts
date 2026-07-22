@@ -36,6 +36,9 @@ export const fallbackEn = {
     passwordPlaceholder: 'Min. 6 characters',
     signInBtn: 'Sign in',
     signingIn: 'Signing in…',
+    loggingInProgress: 'Logging in progress...',
+    autoLoginInProgress: 'Auto-Login in progress...',
+    fetchingProfileData: 'Fetching profile data...',
     demoHint: 'Demo: use any email + 6+ char password'
   },
   dashboard: {

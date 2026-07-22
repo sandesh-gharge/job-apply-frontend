@@ -29,11 +29,15 @@ export class AuthCallback {
     );
 
     const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
 
-    if(accessToken)
-      sessionStorage.setItem("access_token", accessToken);
-    else if(params.get('error')){
-      this.error.set("Token Expired");
+    if (accessToken) {
+      sessionStorage.setItem('access_token', accessToken);
+      if (refreshToken) {
+        sessionStorage.setItem('refresh_token', refreshToken);
+      }
+    } else if (params.get('error')) {
+      this.error.set('Token Expired');
       return;
     }
 

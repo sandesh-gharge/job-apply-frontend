@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ProfileInfo } from '@app/utils/entities/user';
-import { firstValueFrom, Observable, of, map, catchError } from 'rxjs';
+import { firstValueFrom, Observable, of, map, catchError, throwError, shareReplay, tap, finalize } from 'rxjs';
 import { environment } from '@env/environment';
 
 export type Role = 'admin' | 'user' | 'guest';
@@ -10,6 +10,7 @@ export type Role = 'admin' | 'user' | 'guest';
 export class AuthService {
 
   private http = inject(HttpClient);
+  private refreshToken$?: Observable<{ access_token: string; refresh_token: string }>;
 
   login(email: string, password: string) {
     return this.http.post<{
@@ -28,6 +29,39 @@ export class AuthService {
       email,
       password
     });
+  }
+
+  refreshToken(): Observable<{ access_token: string; refresh_token: string }> {
+    const refreshToken = sessionStorage.getItem('refresh_token');
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    if (this.refreshToken$) {
+      return this.refreshToken$;
+    }
+
+    this.refreshToken$ = this.http
+      .post<{ access_token: string; refresh_token: string }>(
+        `${environment.backendAiApiURL}auth/refresh`,
+        { refresh_token: refreshToken }
+      )
+      .pipe(
+        tap((response) => {
+          if (response?.access_token) {
+            sessionStorage.setItem('access_token', response.access_token);
+          }
+          if (response?.refresh_token) {
+            sessionStorage.setItem('refresh_token', response.refresh_token);
+          }
+        }),
+        finalize(() => {
+          this.refreshToken$ = undefined;
+        }),
+        shareReplay(1)
+      );
+
+    return this.refreshToken$;
   }
 
   logout() {

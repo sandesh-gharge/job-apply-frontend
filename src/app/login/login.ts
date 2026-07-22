@@ -1,14 +1,13 @@
-import { Component, signal, inject, OnDestroy, OnInit } from '@angular/core';
+import { computed, Component, signal, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '@app/utils/services/auth.service';
 import { login } from '@app/utils/store/auth/auth.actions';
 import { Store } from '@ngrx/store';
-import { Actions } from '@ngrx/effects';
-import { selectAuthError, selectAuthLoading, selectIsAuthenticated } from '@app/utils/store/auth/auth.selectors';
+import { selectAuthAutoLoginLoading, selectAuthError, selectAuthLoading, selectIsAuthenticated } from '@app/utils/store/auth/auth.selectors';
 import { distinctUntilChanged, filter, Subject, takeUntil } from 'rxjs';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { NameLogo } from "@app/name-logo/name-logo";
+import { selectProfileLoading } from '@app/utils/store/profile/profile.selector';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +17,6 @@ import { NameLogo } from "@app/name-logo/name-logo";
 })
 export class LoginComponent implements OnInit, OnDestroy {
   
-  private auth = inject(AuthService);
   private router = inject(Router);
   private store = inject(Store);
   public translate = inject(TranslationService);
@@ -27,6 +25,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   
   error = signal('');
   loading = this.store.selectSignal(selectAuthLoading);
+  profileLoading = this.store.selectSignal(selectProfileLoading);
+  isBusy = computed(() => this.loading() || this.profileLoading());
+  showAutoLoginMessage = computed(() => !this.loading() && this.profileLoading());
+  autoLoginLoading = this.store.selectSignal(selectAuthAutoLoginLoading);
 
   email = new FormControl('', [
     Validators.required,

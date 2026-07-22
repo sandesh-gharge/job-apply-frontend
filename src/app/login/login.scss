@@ -70,13 +70,21 @@
   }
 }
 
+.status-msg,
+.error-msg {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.status-msg {
+  color: var(--text-secondary);
+}
+
 .error-msg {
   background: var(--error-bg);
   color: var(--error-text);
   border-radius: 8px;
   padding: 8px 12px;
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
 }
 
 .btn-primary {

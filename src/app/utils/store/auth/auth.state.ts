@@ -4,6 +4,7 @@ export interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
+  autoLoginLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
 }

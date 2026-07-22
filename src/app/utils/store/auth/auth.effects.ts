@@ -3,8 +3,7 @@ import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { autoLogin, changePassword, login, loginFailure, loginSuccess, logout } from "./auth.actions";
 import { AuthService } from "../../services/auth.service";
 import { TourService } from "../../services/tour.service";
-import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
-import { ProfileInfo, User } from "../../entities/user";
+import { catchError, from, map, of, switchMap, tap } from "rxjs";
 import { Router } from "@angular/router";
 import { loadProfileInfo, loadProfileInfoSuccess } from "../profile/profile.actions";
 import { loadCoverLetterInfo } from "../cover-letter/cover-letter.actions";
@@ -112,62 +111,77 @@ export class AuthEffects {
     autoLogin$ = createEffect(() =>
         this.actions$.pipe(
             ofType(autoLogin),
-            switchMap(() => {
-                console.log("Attempting auto-login from sessionStorage...");
-                try {
-                    const userStr = sessionStorage.getItem('user');
-                    const token = sessionStorage.getItem('access_token');
+            switchMap(() =>
+                from(this.authService.isLoggedIn()).pipe(
+                    switchMap((isLoggedIn) => {
+                        console.log("Attempting auto-login from sessionStorage...");
 
-                    if (userStr && token) {
-                        const user = JSON.parse(userStr);
-                        console.log("Auto-login successful from sessionStorage");
-                        return of(
-                            loginSuccess({ user, token, refresh_token: sessionStorage.getItem('refresh_token') || '', redirect: false }),
-                            loadProfileInfo()
-                        );
-                    } else {
-                        console.log("No session found in sessionStorage for auto-login");
-                        return of(logout());
-                    }
-                } catch (error) {
-                    console.error("Auto-login failed with error:", error);
-                    return of(logout());
-                }
-            })
+                        if (!isLoggedIn) {
+                            console.log("No active session found for auto-login");
+                            return of(logout());
+                        }
+
+                        try {
+                            const userStr = sessionStorage.getItem('user');
+                            const token = sessionStorage.getItem('access_token');
+
+                            if (userStr && token) {
+                                const user = JSON.parse(userStr);
+                                console.log("Auto-login successful from sessionStorage");
+                                return of(
+                                    loginSuccess({
+                                        user,
+                                        token,
+                                        refresh_token: sessionStorage.getItem('refresh_token') || '',
+                                        redirect: false,
+                                    }),
+                                    loadProfileInfo()
+                                );
+                            }
+
+                            console.log("No session found in sessionStorage for auto-login");
+                            return of(logout());
+                        } catch (error) {
+                            console.error("Auto-login failed with error:", error);
+                            return of(logout());
+                        }
+                    })
+                )
+            )
         )
     );
 
-    changePassword$ = createEffect(() =>
-        this.actions$.pipe(
-            ofType(changePassword),
-            switchMap(({ password }) => this.authService.setPassword(password).pipe(
-                map((response) => {
-                    console.log("Password change successful", response);
-                    return logout(); // Log out after password change
-                }),
-                catchError(error => {
-                    console.error("Password change failed with error:", error);
-                    //this.router.navigate(['/login']);
-                    return of(loginFailure({ error }));
-                })
-            ))
-        )
-    );
-
-    /**
-     * Starts the onboarding tour when a guest user completes a fresh interactive
-     * login. Does NOT trigger on autoLogin (page refresh).
-     */
-    tourStart$ = createEffect(() =>
-        this.actions$.pipe(
-            ofType(loadProfileInfoSuccess),
-            tap(({ profileInfo }) => {
-                if (profileInfo?.role === 'guest' && this.isFreshLogin) {
-                    this.isFreshLogin = false; // consume the flag
-                    // Slight delay to allow navigation + HomeComponent to initialise
-                    setTimeout(() => this.tourService.startTour(), 600);
-                }
+changePassword$ = createEffect(() =>
+    this.actions$.pipe(
+        ofType(changePassword),
+        switchMap(({ password }) => this.authService.setPassword(password).pipe(
+            map((response) => {
+                console.log("Password change successful", response);
+                return logout(); // Log out after password change
+            }),
+            catchError(error => {
+                console.error("Password change failed with error:", error);
+                //this.router.navigate(['/login']);
+                return of(loginFailure({ error }));
             })
-        ), { dispatch: false }
-    );
+        ))
+    )
+);
+
+/**
+ * Starts the onboarding tour when a guest user completes a fresh interactive
+ * login. Does NOT trigger on autoLogin (page refresh).
+ */
+tourStart$ = createEffect(() =>
+    this.actions$.pipe(
+        ofType(loadProfileInfoSuccess),
+        tap(({ profileInfo }) => {
+            if (profileInfo?.role === 'guest' && this.isFreshLogin) {
+                this.isFreshLogin = false; // consume the flag
+                // Slight delay to allow navigation + HomeComponent to initialise
+                setTimeout(() => this.tourService.startTour(), 600);
+            }
+        })
+    ), { dispatch: false }
+);
 }

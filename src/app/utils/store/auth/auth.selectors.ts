@@ -23,6 +23,11 @@ export const selectAuthLoading = createSelector(
     (state: AuthState) => state.loading
 );
 
+export const selectAuthAutoLoginLoading = createSelector(
+    selectAuthState,
+    (state: AuthState) => state.autoLoginLoading
+);
+
 export const selectAuthError = createSelector(
     selectAuthState,
     (state: AuthState) => state.error
