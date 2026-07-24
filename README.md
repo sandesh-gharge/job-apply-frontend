@@ -165,6 +165,16 @@ All calls use `claude-sonnet-4-20250514` with structured JSON responses where ap
 
 ---
 
+## Logo & Branding
+
+The **JobApply logo** (`public/assets/logo-dark.svg` / `logo-light.svg`) is a proprietary visual asset.
+
+> **© 2026 Sandesh Gharge. All Rights Reserved.**
+>
+> Unauthorized copying, distribution, modification, or commercial use of the logo is strictly prohibited under copyright law. The logo may not be used in derivative works, marketing materials, or any other project without explicit written permission from the copyright holder.
+
+---
+
 ## License
 
 Proprietary. All rights reserved. See the [LICENSE](LICENSE) file for details.
