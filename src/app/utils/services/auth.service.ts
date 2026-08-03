@@ -34,6 +34,7 @@ export class AuthService {
   refreshToken(): Observable<{ access_token: string; refresh_token: string }> {
     const refreshToken = sessionStorage.getItem('refresh_token');
     if (!refreshToken) {
+      console.warn('[AuthService] No refresh token found in storage.');
       return throwError(() => new Error('No refresh token available'));
     }
 
@@ -47,12 +48,15 @@ export class AuthService {
         { refresh_token: refreshToken }
       )
       .pipe(
-        tap((response) => {
-          if (response?.access_token) {
-            sessionStorage.setItem('access_token', response.access_token);
+        tap((response: any) => {
+          const newAccess = response?.access_token || response?.token;
+          const newRefresh = response?.refresh_token || refreshToken;
+
+          if (newAccess) {
+            sessionStorage.setItem('access_token', newAccess);
           }
-          if (response?.refresh_token) {
-            sessionStorage.setItem('refresh_token', response.refresh_token);
+          if (newRefresh) {
+            sessionStorage.setItem('refresh_token', newRefresh);
           }
         }),
         finalize(() => {

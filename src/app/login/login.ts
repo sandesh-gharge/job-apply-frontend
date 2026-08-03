@@ -26,9 +26,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   error = signal('');
   loading = this.store.selectSignal(selectAuthLoading);
   profileLoading = this.store.selectSignal(selectProfileLoading);
-  isBusy = computed(() => this.loading() || this.profileLoading());
-  showAutoLoginMessage = computed(() => !this.loading() && this.profileLoading());
   autoLoginLoading = this.store.selectSignal(selectAuthAutoLoginLoading);
+  isBusy = computed(() => this.loading() || this.profileLoading() || this.autoLoginLoading());
+  showAutoLoginMessage = computed(() => !this.loading() && this.profileLoading());
 
   email = new FormControl('', [
     Validators.required,

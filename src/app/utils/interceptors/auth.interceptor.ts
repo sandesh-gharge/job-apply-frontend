@@ -10,7 +10,10 @@ import { environment } from '@env/environment';
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const isBackendRequest = req.url.startsWith(environment.backendAiApiURL);
+  const backendBase = environment.backendAiApiURL.replace(/\/$/, '');
+  const isBackendRequest =
+    req.url.startsWith(environment.backendAiApiURL) ||
+    req.url.startsWith(backendBase);
 
   if (!isBackendRequest) {
     return next(req);
@@ -30,28 +33,35 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (
-        error.status === 401 &&
-        !isRefreshRequest &&
-        sessionStorage.getItem('refresh_token')
-      ) {
-        return authService.refreshToken().pipe(
-          switchMap((tokens) => {
-            const retryReq = req.clone({
-              setHeaders: {
-                Authorization: `Bearer ${tokens.access_token}`,
-              },
-            });
-            return next(retryReq);
-          }),
-          catchError((refreshError) => {
-            sessionStorage.removeItem('user');
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('refresh_token');
-            window.location.href = '/login';
-            return throwError(() => refreshError);
-          })
+      if (error.status === 401 && !isRefreshRequest) {
+        const refreshToken =
+          sessionStorage.getItem('refresh_token');
+
+        console.warn(
+          '[AuthInterceptor] Caught 401 Unauthorized for URL:',
+          req.url,
+          refreshToken ? 'Found refresh_token, initiating token refresh...' : 'No refresh_token found in storage!'
         );
+
+        if (refreshToken) {
+          return authService.refreshToken().pipe(
+            switchMap((tokens) => {
+              console.log('[AuthInterceptor] Refresh successful. Retrying original request.');
+              const retryReq = req.clone({
+                setHeaders: {
+                  Authorization: `Bearer ${tokens.access_token}`,
+                },
+              });
+              return next(retryReq);
+            }),
+            catchError((refreshError) => {
+              console.error('[AuthInterceptor] Refresh token endpoint returned an error. Clearing session.', refreshError);
+              sessionStorage.clear();
+              window.location.href = '/login';
+              return throwError(() => refreshError);
+            })
+          );
+        }
       }
       return throwError(() => error);
     })
