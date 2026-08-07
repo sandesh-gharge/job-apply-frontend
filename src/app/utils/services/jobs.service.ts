@@ -78,9 +78,13 @@ export class JobsService {
     return this.http.delete<void>(`${this.baseUrl}jobs/${id}`);
   }
 
-  fetchPreview(type: 'cv' | 'cl', data: any, userId?: string): Observable<any> {
+  fetchPreview(type: 'cv' | 'cl', data: any, userId?: string, templateId?: string | null): Observable<any> {
     const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
-    return this.http.post<any>(`${this.baseUrl}${endpoint}/preview/${userId}`, data);
+    let url = `${this.baseUrl}${endpoint}/preview/${userId}`;
+    if (templateId) {
+      url += `?template_id=${templateId}`;
+    }
+    return this.http.post<any>(url, data);
   }
 
   downloadPDF(type: 'cv' | 'cl', data: any): Observable<Blob> {

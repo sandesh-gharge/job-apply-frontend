@@ -6,6 +6,7 @@ import { coverLetterReducer } from './cover-letter/cover-letter.reducer';
 import { profileReducer } from './profile/profile.reducer';
 import { jobsReducer } from './jobs/jobs.reducer';
 import { applyWizardReducer } from './apply-wizard/apply-wizard.reducer';
+import { templatesReducer } from './templates/templates.reducer';
 
 export const reducers: ActionReducerMap<AppState> = {
   auth: authReducer,
@@ -13,5 +14,6 @@ export const reducers: ActionReducerMap<AppState> = {
   cv: cvReducer,
   coverLetter: coverLetterReducer,
   jobs: jobsReducer,
-  applyWizard: applyWizardReducer
+  applyWizard: applyWizardReducer,
+  templates: templatesReducer
 };

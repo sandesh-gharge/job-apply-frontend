@@ -11,5 +11,6 @@ export const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [authGuard], data: { roles: ['admin', 'user', 'guest'] } },
   { path: 'auth/callback', component: AuthCallback },
   { path: 'set-password', component: SetPassword, canActivate: [authGuard], data: { roles: ['admin', 'user', 'guest'] } },
+  { path: 'demo-task', loadComponent: () => import('./demo-task/demo-task').then(m => m.DemoTaskComponent), canActivate: [authGuard], data: { roles: ['admin', 'user', 'guest'] } },
   { path: '**', redirectTo: '/login' }
 ];

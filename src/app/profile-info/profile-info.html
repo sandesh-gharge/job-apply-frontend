@@ -173,7 +173,92 @@
     </div>
   </div>
 
+  <!-- ✨ Custom Themes ✨ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <h3 class="panel-title">{{ translate.t().profile.themesTitle }}</h3>
+        <p class="panel-hint">{{ translate.t().profile.themesHint }}</p>
+      </div>
+      <div class="toggle-container">
+        <span class="toggle-label">{{ translate.t().profile.showPublicThemes }}</span>
+        <label class="switch">
+          <input type="checkbox"
+            [checked]="includePublicThemes()"
+            (change)="togglePublicThemes($any($event.target).checked)" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- CV Themes -->
+    <div class="agent-selection" style="margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: center;">
+      <label style="font-weight: 500; color: var(--text-secondary);">{{ translate.t().profile.cvTheme }}:</label>
+      <select [ngModel]="selectedCvTemplateId()" (ngModelChange)="onCvTemplateChange($event)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
+         <option [ngValue]="null">{{ translate.t().profile.defaultCvTheme }}</option>
+         @for (t of cvTemplates(); track t._id) {
+           <option [ngValue]="t._id">{{ t.name }} {{ t.isPublic ? '(' + translate.t().profile.themePublic + ')' : '' }}</option>
+         }
+      </select>
+      <button class="btn-change-password" (click)="openThemeDialog(true, 'cv')" [disabled]="!canEditCvTheme()">{{ translate.t().profile.btnEditTheme }}</button>
+      <button class="btn-save" (click)="openThemeDialog(false, 'cv')">{{ translate.t().profile.btnAddTheme }}</button>
+    </div>
+
+    <!-- Cover Letter Themes -->
+    <div class="agent-selection" style="display: flex; gap: 10px; align-items: center;">
+      <label style="font-weight: 500; color: var(--text-secondary);">{{ translate.t().profile.clTheme }}:</label>
+      <select [ngModel]="selectedClTemplateId()" (ngModelChange)="onClTemplateChange($event)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
+         <option [ngValue]="null">{{ translate.t().profile.defaultClTheme }}</option>
+         @for (t of clTemplates(); track t._id) {
+           <option [ngValue]="t._id">{{ t.name }} {{ t.isPublic ? '(' + translate.t().profile.themePublic + ')' : '' }}</option>
+         }
+      </select>
+      <button class="btn-change-password" (click)="openThemeDialog(true, 'cl')" [disabled]="!canEditClTheme()">{{ translate.t().profile.btnEditTheme }}</button>
+      <button class="btn-save" (click)="openThemeDialog(false, 'cl')">{{ translate.t().profile.btnAddTheme }}</button>
+    </div>
+  </div>
+
 </div>
+
+<dialog #themeDialog class="agent-dialog" style="width: 80%; max-width: 800px;">
+  <h3 class="dialog-title">{{ isEditThemeMode() ? translate.t().profile.dialogEditThemeTitle : translate.t().profile.dialogAddThemeTitle }} ({{ themeDocType() === 'cv' ? 'CV' : 'Cover Letter' }})</h3>
+  <form (submit)="saveThemeDetails(); $event.preventDefault();" class="dialog-form">
+    
+    <div class="field">
+      <label>{{ translate.t().profile.themeName }} *</label>
+      <input type="text" [ngModel]="themeForm().name" (ngModelChange)="themeForm.set({...themeForm(), name: $event})" name="themeName" required />
+    </div>
+
+    <div class="field field-full">
+      <label>{{ translate.t().profile.themeHtml }} *</label>
+      <textarea [ngModel]="themeForm().html_template" (ngModelChange)="themeForm.set({...themeForm(), html_template: $event})" name="themeHtml" rows="15" required style="width: 100%; padding: 8px; font-family: monospace;"></textarea>
+    </div>
+
+    <div class="toggle-container" style="justify-content: flex-start; gap: 10px; margin-top: 5px;">
+      <span class="toggle-label" style="font-weight: 500;">{{ translate.t().profile.themePublic }}</span>
+      <label class="switch">
+        <input type="checkbox" [ngModel]="themeForm().isPublic" (ngModelChange)="themeForm.set({...themeForm(), isPublic: $event})" name="themePublic" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="dialog-actions" style="justify-content: space-between;">
+      <div>
+        <button type="button" class="btn-view-image-inside" (click)="previewTheme()">{{ translate.t().profile.btnPreviewTheme }}</button>
+      </div>
+      <div>
+        <button type="button" class="btn-change-password" (click)="closeThemeDialog()">{{ translate.t().profile.btnCancelTheme }}</button>
+        <button type="submit" class="btn-save">{{ translate.t().profile.btnSaveTheme }}</button>
+      </div>
+    </div>
+    
+    @if (themePreviewHtml()) {
+      <div style="margin-top: 20px; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; height: 400px;">
+        <iframe [srcdoc]="themePreviewHtml()" style="width: 100%; height: 100%; border: none;"></iframe>
+      </div>
+    }
+  </form>
+</dialog>
 
 <dialog #agentDialog class="agent-dialog">
   <h3 class="dialog-title">{{ isEditMode() ? translate.t().profile.dialogEditAgentTitle : translate.t().profile.dialogAddAgentTitle }}</h3>

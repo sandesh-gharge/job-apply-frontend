@@ -385,7 +385,24 @@ export const fallbackEn = {
     toastValidImage: 'Please select a valid image file',
     toastImageSize: 'Image must be smaller than 1MB',
     toastNoPhoto: 'No profile photo found',
-    toastNoSignature: 'No signature image found'
+    toastNoSignature: 'No signature image found',
+    themesTitle: 'Custom Themes',
+    themesHint: 'Create and manage your own CV and Cover Letter templates.',
+    showPublicThemes: 'Show Public Themes',
+    cvTheme: 'CV Theme',
+    clTheme: 'Cover Letter Theme',
+    defaultCvTheme: 'Default CV Theme',
+    defaultClTheme: 'Default Cover Letter Theme',
+    btnEditTheme: 'Edit',
+    btnAddTheme: 'Add',
+    dialogEditThemeTitle: 'Edit Theme',
+    dialogAddThemeTitle: 'Add Theme',
+    themeName: 'Theme Name',
+    themeHtml: 'HTML Template (Jinja2)',
+    themePublic: 'Public Theme',
+    btnPreviewTheme: 'Preview',
+    btnCancelTheme: 'Cancel',
+    btnSaveTheme: 'Save'
   },
   setPassword: {
     title: 'Change Password',
@@ -438,7 +455,10 @@ export const fallbackEn = {
     toastDownloadedCv: 'CV PDF downloaded!',
     toastDownloadedCl: 'Cover Letter PDF downloaded!',
     toastFailDownloadCv: 'Failed to download CV PDF',
-    toastFailDownloadCl: 'Failed to download Cover Letter PDF'
+    toastFailDownloadCl: 'Failed to download Cover Letter PDF',
+    cvThemeLabel: 'CV Theme:',
+    clThemeLabel: 'Cover Letter Theme:',
+    defaultTheme: 'Default'
   },
   applyWizard: {
     stepFetch: 'Fetch Job',
@@ -513,6 +533,13 @@ export const fallbackEn = {
     proprietaryMessage: 'Proprietary and Confidential. Unauthorized use, copying, or distribution is strictly prohibited.',
     help: 'Help',
     language: 'Language'
+  },
+  demoTask: {
+    title: 'Demo Task',
+    checkHealthBtn: 'Check Health',
+    healthStatus: 'Health Status',
+    toastSuccess: 'Health check successful!',
+    toastError: 'Health check failed.'
   }
 };
 

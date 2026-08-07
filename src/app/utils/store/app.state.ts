@@ -4,6 +4,7 @@ import { CoverLetterState } from './cover-letter/cover-letter.state';
 import { ProfileInfoState } from './profile/profile.state';
 import { JobsState } from './jobs/jobs.state';
 import { ApplyWizardState } from './apply-wizard/apply-wizard.state';
+import { TemplatesState } from './templates/templates.state';
 
 export interface AppState {
   auth: AuthState;
@@ -12,4 +13,5 @@ export interface AppState {
   coverLetter: CoverLetterState;
   jobs: JobsState;
   applyWizard: ApplyWizardState;
+  templates: TemplatesState;
 }

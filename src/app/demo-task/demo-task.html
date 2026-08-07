@@ -1,0 +1,18 @@
+<div class="demo-task-container">
+  <div class="panel">
+    <h2 class="panel-title">{{ translate.t().demoTask.title }}</h2>
+    
+    <button 
+      class="btn-primary" 
+      [disabled]="loading()" 
+      (click)="checkHealth()">
+      {{ loading() ? translate.t().common.loading : translate.t().demoTask.checkHealthBtn }}
+    </button>
+
+    <div *ngIf="healthStatus()" class="status-card">
+      <h3>{{ translate.t().demoTask.healthStatus }}</h3>
+      <p><strong>Status:</strong> <span [class]="healthStatus()?.status === 'ok' ? 'status-ok' : 'status-error'">{{ healthStatus()?.status }}</span></p>
+      <p><strong>Message:</strong> {{ healthStatus()?.message }}</p>
+    </div>
+  </div>
+</div>

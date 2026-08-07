@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
 import { defaultCV } from '@app/utils/entities/cv';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { FormsModule } from '@angular/forms';
 import {
   selectCoverLetterDetails,
   selectJobDetails,
@@ -17,6 +18,7 @@ import {
 
 @Component({
   selector: 'app-pdf-preview',
+  imports: [FormsModule],
   templateUrl: './apply-preview.html',
   styleUrl: './apply-preview.scss'
 })
@@ -76,6 +78,25 @@ export class ApplyPreviewComponent {
   get cvLoading$() { return this.cvLoading; }
   get clLoading$() { return this.clLoading; }
 
+  cvTemplates = this.store.selectSignal((state: any) => state.templates.cvTemplates);
+  clTemplates = this.store.selectSignal((state: any) => state.templates.clTemplates);
+  selectedCvTemplateId = this.store.selectSignal((state: any) => state.templates.selectedCvTemplateId);
+  selectedClTemplateId = this.store.selectSignal((state: any) => state.templates.selectedClTemplateId);
+
+  onCvTemplateChange(id: string | null) {
+    this.store.dispatch({ type: '[Templates] Set Selected CV Template', id });
+    if (this.cvHtml()) { // If already generated, re-generate preview
+      this.fetchPreview('cv');
+    }
+  }
+
+  onClTemplateChange(id: string | null) {
+    this.store.dispatch({ type: '[Templates] Set Selected CL Template', id });
+    if (this.clHtml()) {
+      this.fetchPreview('cl');
+    }
+  }
+
   async fetchPreview(type: 'cv' | 'cl') {
     if (type === 'cv' ? this.cvLoading() : this.clLoading()) return;
 
@@ -88,9 +109,10 @@ export class ApplyPreviewComponent {
     }
 
     const data = type === 'cv' ? this.cvInfo().cvData : this.coverLetterData();
+    const templateId = type === 'cv' ? this.selectedCvTemplateId() : this.selectedClTemplateId();
 
     try {
-      const html = await firstValueFrom(this.jobsService.fetchPreview(type, data, this.profileInfo()?.id));
+      const html = await firstValueFrom(this.jobsService.fetchPreview(type, data, this.profileInfo()?.id, templateId));
       if (!html) throw new Error('No preview content returned');
       this.clHtml.set(type === 'cl' ? html : this.clHtml());
       this.cvHtml.set(type === 'cv' ? html : this.cvHtml());

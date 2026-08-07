@@ -206,4 +206,103 @@ export class ProfileInfoComponent implements OnInit {
     this.closeAgentDialog();
   }
 
+  // --- Themes Logic ---
+  cvTemplates = this.store.selectSignal((state: any) => state.templates.cvTemplates);
+  clTemplates = this.store.selectSignal((state: any) => state.templates.clTemplates);
+  selectedCvTemplateId = this.store.selectSignal((state: any) => state.templates.selectedCvTemplateId);
+  selectedClTemplateId = this.store.selectSignal((state: any) => state.templates.selectedClTemplateId);
+  themePreviewHtml = this.store.selectSignal((state: any) => state.templates.previewHtml);
+  includePublicThemes = signal(false);
+
+  @ViewChild('themeDialog') themeDialog!: ElementRef<HTMLDialogElement>;
+  isEditThemeMode = signal(false);
+  themeDocType = signal<'cv'|'cl'>('cv');
+  themeForm = signal<{_id?: string; name: string; html_template: string; isPublic: boolean}>({ name: '', html_template: '', isPublic: false });
+
+  loadThemes() {
+    const userId = this.profile().id;
+    if (!userId) return;
+    this.store.dispatch({ type: '[Templates] Load Templates', docType: 'cv', userId, includePublic: this.includePublicThemes() });
+    this.store.dispatch({ type: '[Templates] Load Templates', docType: 'cl', userId, includePublic: this.includePublicThemes() });
+  }
+
+  togglePublicThemes(checked: boolean) {
+    this.includePublicThemes.set(checked);
+    this.loadThemes();
+  }
+
+  onCvTemplateChange(id: string | null) {
+    this.store.dispatch({ type: '[Templates] Set Selected CV Template', id });
+  }
+
+  onClTemplateChange(id: string | null) {
+    this.store.dispatch({ type: '[Templates] Set Selected CL Template', id });
+  }
+
+  canEditCvTheme(): boolean {
+    const id = this.selectedCvTemplateId();
+    if (!id) return false;
+    const t = this.cvTemplates().find((x: any) => x._id === id);
+    return t ? t.userId === this.profile().id : false;
+  }
+
+  canEditClTheme(): boolean {
+    const id = this.selectedClTemplateId();
+    if (!id) return false;
+    const t = this.clTemplates().find((x: any) => x._id === id);
+    return t ? t.userId === this.profile().id : false;
+  }
+
+  openThemeDialog(isEdit: boolean, docType: 'cv' | 'cl') {
+    this.isEditThemeMode.set(isEdit);
+    this.themeDocType.set(docType);
+    this.store.dispatch({ type: '[Templates] Clear Preview' });
+
+    if (isEdit) {
+      const id = docType === 'cv' ? this.selectedCvTemplateId() : this.selectedClTemplateId();
+      const list = docType === 'cv' ? this.cvTemplates() : this.clTemplates();
+      const selected = list.find((x: any) => x._id === id);
+      if (selected) {
+        this.themeForm.set({ _id: selected._id, name: selected.name, html_template: selected.html_template, isPublic: selected.isPublic });
+      }
+    } else {
+      this.themeForm.set({ name: '', html_template: '', isPublic: false });
+    }
+    this.themeDialog.nativeElement.showModal();
+  }
+
+  closeThemeDialog() {
+    this.themeDialog.nativeElement.close();
+  }
+
+  previewTheme() {
+    const userId = this.profile().id;
+    if (!userId || !this.themeForm().html_template) return;
+    this.store.dispatch({
+      type: '[Templates] Preview Template',
+      docType: this.themeDocType(),
+      userId,
+      html_template: this.themeForm().html_template
+    });
+  }
+
+  saveThemeDetails() {
+    const userId = this.profile().id;
+    const { _id, ...themeData } = this.themeForm();
+    if (this.isEditThemeMode() && _id) {
+      this.store.dispatch({
+        type: '[Templates] Update Template',
+        docType: this.themeDocType(),
+        id: _id,
+        template: { ...themeData, userId }
+      });
+    } else {
+      this.store.dispatch({
+        type: '[Templates] Create Template',
+        docType: this.themeDocType(),
+        template: { ...themeData, userId }
+      });
+    }
+    this.closeThemeDialog();
+  }
 }

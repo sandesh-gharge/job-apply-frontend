@@ -4,6 +4,28 @@
     <p class="subtitle">{{ translate.t().applyPreview.subtitle }}</p>
   </div>
 
+  <!-- ✨ Theme Selectors ✨ -->
+  <div class="theme-selectors" style="display: flex; gap: 20px; padding: 15px; background: var(--bg-card); border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+      <label style="font-weight: 500;">{{ translate.t().applyPreview.cvThemeLabel }}</label>
+      <select [ngModel]="selectedCvTemplateId()" (ngModelChange)="onCvTemplateChange($event)" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary);">
+        <option [ngValue]="null">{{ translate.t().applyPreview.defaultTheme }}</option>
+        @for (t of cvTemplates(); track t._id) {
+          <option [ngValue]="t._id">{{ t.name }} {{ t.isPublic ? '(' + translate.t().profile.themePublic + ')' : '' }}</option>
+        }
+      </select>
+    </div>
+    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+      <label style="font-weight: 500;">{{ translate.t().applyPreview.clThemeLabel }}</label>
+      <select [ngModel]="selectedClTemplateId()" (ngModelChange)="onClTemplateChange($event)" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary);">
+        <option [ngValue]="null">{{ translate.t().applyPreview.defaultTheme }}</option>
+        @for (t of clTemplates(); track t._id) {
+          <option [ngValue]="t._id">{{ t.name }} {{ t.isPublic ? '(' + translate.t().profile.themePublic + ')' : '' }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
   <div class="previews">
     <!-- CV Panel -->
     <div class="preview-panel">

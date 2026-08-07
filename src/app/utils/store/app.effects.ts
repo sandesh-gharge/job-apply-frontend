@@ -4,6 +4,7 @@ import { CoverLetterEffects } from "./cover-letter/cover-letter.effects";
 import { ProfileEffects } from "./profile/profile.effects";
 import { JobsEffects } from "./jobs/jobs.effects";
 import { ApplyWizardEffects } from "./apply-wizard/apply-wizard.effects";
+import { TemplatesEffects } from "./templates/templates.effects";
 
 export const effects = [
     AuthEffects,
@@ -11,5 +12,6 @@ export const effects = [
     CVEffects,
     CoverLetterEffects,
     JobsEffects,
-    ApplyWizardEffects
+    ApplyWizardEffects,
+    TemplatesEffects
 ];
