@@ -42,7 +42,8 @@ export class JobTrackerComponent {
   itemsPerPageOptions = [5, 10, 25, 50, 100];
 
   form = signal<Omit<JobDetails, 'id'>>({
-    companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0],
+    companyName: '', role: '', companyLocation: '', appliedDate: "",
+    updatedAt: "",
     status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '', jobDescription: ''
   });
 
@@ -108,14 +109,15 @@ export class JobTrackerComponent {
 
   openAddModal() {
     this.editingJob.set(null);
-    this.form.set({ companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0], status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '', jobDescription: '' });
+    this.form.set({ companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0], updatedAt: new Date().toISOString().split('T')[0], status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '', jobDescription: '' });
     this.showModal.set(true);
   }
 
   openEditModal(job: JobDetails) {
     this.editingJob.set(job);
     const normalizedDate = job.appliedDate ? new Date(job.appliedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: normalizedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '', jobDescription: job.jobDescription ?? '' });
+    const normalizedUpdatedAt = job.updatedAt ? new Date(job.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: normalizedDate, updatedAt: normalizedUpdatedAt, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '', jobDescription: job.jobDescription ?? '' });
     this.showModal.set(true);
   }
 

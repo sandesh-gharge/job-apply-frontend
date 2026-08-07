@@ -20,6 +20,7 @@ export interface JobDetails {
   role: string;
   companyLocation: string;
   appliedDate: string;
+  updatedAt: string;
   status: JobStatus;
   salary?: string;
   contactName?: string;

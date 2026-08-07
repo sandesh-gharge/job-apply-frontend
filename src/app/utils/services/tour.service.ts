@@ -28,6 +28,7 @@ const MOCK_JOB: JobDetails = {
   role: 'Senior Frontend Developer (Angular)',
   companyLocation: 'Berlin, Germany',
   appliedDate: new Date().toISOString().split('T')[0],
+  updatedAt: new Date().toISOString().split('T')[0],
   status: 'Open',
   salary: '80,000 – 95,000 €',
   contactName: 'Frau Weber',
