@@ -16,13 +16,12 @@ import { TourOverlayComponent } from '@app/tour/tour-overlay';
 import { ActivatedRoute } from '@angular/router';
 import { NameLogo } from "@app/name-logo/name-logo";
 import { FooterComponent } from '@app/footer/footer';
-import { DemoTaskComponent } from '@app/demo-task/demo-task';
 
-type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile' | 'demo-task';
+type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
 @Component({
   selector: 'app-home',
-  imports: [NameLogo, DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent, StatusBarComponent, TourOverlayComponent, FooterComponent, DemoTaskComponent],
+  imports: [NameLogo, DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent, StatusBarComponent, TourOverlayComponent, FooterComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
@@ -46,7 +45,7 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'] as TabId;
-      if (tab && ['dashboard', 'apply-job', 'job-tracker', 'profile', 'demo-task'].includes(tab)) {
+      if (tab && ['dashboard', 'apply-job', 'job-tracker', 'profile'].includes(tab)) {
         this.activeTab.set(tab);
       }
     });
@@ -56,8 +55,7 @@ export class HomeComponent implements OnInit {
     { id: 'dashboard',  label: this.translate.t().navigation.home,       icon: '⊞' },
     { id: 'apply-job',  label: this.translate.t().navigation.applyJob,  icon: '✦' },
     { id: 'job-tracker', label: this.translate.t().navigation.myJobs,   icon: '◈' },
-    { id: 'profile',    label: this.translate.t().navigation.profile,    icon: '⚙' },
-    { id: 'demo-task',  label: this.translate.t().demoTask.title,        icon: '⚡' },
+    { id: 'profile',    label: this.translate.t().navigation.profile,    icon: '⚙' }
   ]);
 
   user =  this.store.selectSignal(selectCurrentUser)();

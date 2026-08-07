@@ -8,6 +8,7 @@ import { Router } from "@angular/router";
 import { loadProfileInfo, loadProfileInfoSuccess } from "../profile/profile.actions";
 import { loadCoverLetterInfo } from "../cover-letter/cover-letter.actions";
 import { loadCVInfo } from "../cv/cv.actions";
+import { loadTemplates } from "../templates/templates.actions";
 
 
 @Injectable()
@@ -73,7 +74,9 @@ export class AuthEffects {
                 }
                 return of(
                     loadCoverLetterInfo({ userId: user.id }),
-                    loadCVInfo({ userId: user.id })
+                    loadCVInfo({ userId: user.id }),
+                    loadTemplates({ docType: 'cl', userId: user.id, includePublic: false }),
+                    loadTemplates({ docType: 'cv', userId: user.id, includePublic: false }),
                 )
             })
 

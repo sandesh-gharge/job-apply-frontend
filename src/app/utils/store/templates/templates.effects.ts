@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { TemplatesService } from '../../services/templates.service';
 import * as TemplatesActions from './templates.actions';
-import { catchError, map, switchMap, of } from 'rxjs';
+import { of } from 'rxjs';
+import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
 
 @Injectable()
 export class TemplatesEffects {
@@ -11,7 +12,7 @@ export class TemplatesEffects {
 
   loadTemplates$ = createEffect(() => this.actions$.pipe(
     ofType(TemplatesActions.loadTemplates),
-    switchMap(({ docType, userId, includePublic }) =>
+    mergeMap(({ docType, userId, includePublic }) =>
       this.templatesService.getTemplates(docType, userId, includePublic).pipe(
         map(templates => TemplatesActions.loadTemplatesSuccess({ docType, templates })),
         catchError(error => of(TemplatesActions.loadTemplatesFailure({ error: error.message })))
