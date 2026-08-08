@@ -150,19 +150,23 @@ export class ApplyPreviewComponent {
 
     try {
       const blob = await firstValueFrom(this.jobsService.downloadPDF(type, { html : data }));
-      if (!blob) throw new Error('No PDF content returned');
+      if (!blob) {
+        this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailDownloadCv : this.translate.t().applyPreview.toastFailDownloadCl, 'error');
+        return;
+      }
 
-      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(pdfBlob);
+     const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = type === 'cv' ? [name, "CV.pdf"].join("_") : [name, "CoverLetter.pdf"].join("_");
+      link.download = type === 'cv' ? 'cv-preview.pdf' : 'cover-letter-preview.pdf';
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(link.href, '_blank');
+      });
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      window.URL.revokeObjectURL(url);
 
       this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastDownloadedCv : this.translate.t().applyPreview.toastDownloadedCl);
     } catch (error) {
