@@ -28,6 +28,16 @@ export const updateSelectedAgentId = createAction(
     props<{ selectedAgentId: string | null }>()
 );
 
+export const updateSelectedCvTemplate = createAction(
+    '[Profile] Update Selected CV Template',
+    props<{ selectedCvTemplate: string | null }>()
+);
+
+export const updateSelectedClTemplate = createAction(
+    '[Profile] Update Selected CL Template',
+    props<{ selectedClTemplate: string | null }>()
+);
+
 export const clearProfileInfo = createAction(
     '[Profile] Clear Profile Info'
 );  

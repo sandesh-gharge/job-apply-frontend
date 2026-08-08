@@ -45,15 +45,6 @@ export const deleteTemplateSuccess = createAction(
   props<{ docType: 'cv' | 'cl', id: string }>()
 );
 
-// Selection
-export const setSelectedCvTemplate = createAction(
-  '[Templates] Set Selected CV Template',
-  props<{ id: string | null }>()
-);
-export const setSelectedClTemplate = createAction(
-  '[Templates] Set Selected CL Template',
-  props<{ id: string | null }>()
-);
 
 // Preview
 export const previewTemplate = createAction(

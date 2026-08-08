@@ -1,6 +1,6 @@
 import { createReducer, on } from "@ngrx/store";
 import { ProfileInfoState } from "./profile.state";
-import { clearProfileInfo, loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, updateProfileInfo, createAgentSuccess, updateAgentSuccess, updateSelectedAgentId } from "./profile.actions";
+import { clearProfileInfo, loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, updateProfileInfo, createAgentSuccess, updateAgentSuccess, updateSelectedAgentId, updateSelectedCvTemplate, updateSelectedClTemplate } from "./profile.actions";
 
 export const initialProfileState: ProfileInfoState = {
     profileInfo: null,
@@ -38,6 +38,16 @@ export const profileReducer = createReducer(
     on(updateSelectedAgentId, (state, { selectedAgentId }) => ({
         ...state,
         profileInfo: state.profileInfo ? { ...state.profileInfo, selectedAgentId } : null
+    })),
+
+    on(updateSelectedCvTemplate, (state, { selectedCvTemplate }) => ({
+        ...state,
+        profileInfo: state.profileInfo ? { ...state.profileInfo, selectedCvTemplate } : null
+    })),
+
+    on(updateSelectedClTemplate, (state, { selectedClTemplate }) => ({
+        ...state,
+        profileInfo: state.profileInfo ? { ...state.profileInfo, selectedClTemplate } : null
     })),
 
     on(clearProfileInfo, () => ({

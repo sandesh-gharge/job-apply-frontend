@@ -31,9 +31,7 @@ export const templatesReducer = createReducer(
       : { ...state, clTemplates: state.clTemplates.filter(t => t._id !== id) };
   }),
 
-  on(TemplatesActions.setSelectedCvTemplate, (state, { id }) => ({ ...state, selectedCvTemplateId: id })),
-  on(TemplatesActions.setSelectedClTemplate, (state, { id }) => ({ ...state, selectedClTemplateId: id })),
-  
+
   on(TemplatesActions.previewTemplateSuccess, (state, { renderedHtml }) => ({ ...state, previewHtml: renderedHtml })),
   on(TemplatesActions.clearPreview, (state) => ({ ...state, previewHtml: null }))
 );

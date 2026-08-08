@@ -9,8 +9,6 @@ export interface Template {
 export interface TemplatesState {
   cvTemplates: Template[];
   clTemplates: Template[];
-  selectedCvTemplateId: string | null;
-  selectedClTemplateId: string | null;
   loading: boolean;
   error: string | null;
   previewHtml: string | null;
@@ -19,8 +17,6 @@ export interface TemplatesState {
 export const initialTemplatesState: TemplatesState = {
   cvTemplates: [],
   clTemplates: [],
-  selectedCvTemplateId: null,
-  selectedClTemplateId: null,
   loading: false,
   error: null,
   previewHtml: null

@@ -13,15 +13,6 @@ export const selectClTemplates = createSelector(
   (state: TemplatesState) => state.clTemplates
 );
 
-export const selectSelectedCvTemplateId = createSelector(
-  selectTemplatesState,
-  (state: TemplatesState) => state.selectedCvTemplateId
-);
-
-export const selectSelectedClTemplateId = createSelector(
-  selectTemplatesState,
-  (state: TemplatesState) => state.selectedClTemplateId
-);
 
 export const selectPreviewHtml = createSelector(
   selectTemplatesState,

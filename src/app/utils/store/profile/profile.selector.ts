@@ -13,6 +13,16 @@ export const selectProfileInfo = createSelector(
     (state: ProfileInfoState) => state.profileInfo
 );
 
+export const selectSelectedCvTemplate = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.selectedCvTemplate
+);
+
+export const selectSelectedClTemplate = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.selectedClTemplate
+);
+
 export const profileLocation = createSelector(
     selectProfileState,
     (state: ProfileInfoState) => state.profileInfo?.location

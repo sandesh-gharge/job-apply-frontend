@@ -23,6 +23,8 @@ export interface ProfileInfo {
   location: string;
   email: string;
   selectedAgentId: string | null;
+  selectedCvTemplate: string | null;
+  selectedClTemplate: string | null;
   userApiAgents: ApiAgentInfo[];
   profileImageUrl?: string;
   signatureImageUrl?: string;

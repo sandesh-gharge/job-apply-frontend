@@ -3,8 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { ProfileInfo, ApiAgentInfo } from '../utils/entities/user';
 import { Store } from '@ngrx/store';
-import { selectProfileInfo, selectActiveAgent } from '../utils/store/profile/profile.selector';
-import { updateProfileInfo, updateSelectedAgentId, createAgent, updateAgent } from '../utils/store/profile/profile.actions';
+import { selectProfileInfo, selectActiveAgent, selectSelectedCvTemplate, selectSelectedClTemplate } from '../utils/store/profile/profile.selector';
+import { updateProfileInfo, updateSelectedAgentId, createAgent, updateAgent, updateSelectedCvTemplate, updateSelectedClTemplate } from '../utils/store/profile/profile.actions';
 import { ProfileService } from '@app/utils/services/profile.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { Router } from '@angular/router';
@@ -85,6 +85,8 @@ export class ProfileInfoComponent implements OnInit {
     location: '',
     email: '',
     selectedAgentId: null,
+    selectedCvTemplate: null,
+    selectedClTemplate: null,
     userApiAgents: [],
     profileImageUrl: '',
     signatureImageUrl: '',
@@ -209,8 +211,8 @@ export class ProfileInfoComponent implements OnInit {
   // --- Themes Logic ---
   cvTemplates = this.store.selectSignal((state: any) => state.templates.cvTemplates);
   clTemplates = this.store.selectSignal((state: any) => state.templates.clTemplates);
-  selectedCvTemplateId = this.store.selectSignal((state: any) => state.templates.selectedCvTemplateId);
-  selectedClTemplateId = this.store.selectSignal((state: any) => state.templates.selectedClTemplateId);
+  selectedCvTemplateId = this.store.selectSignal(selectSelectedCvTemplate);
+  selectedClTemplateId = this.store.selectSignal(selectSelectedClTemplate);
   themePreviewHtml = this.store.selectSignal((state: any) => state.templates.previewHtml);
   includePublicThemes = signal(false);
 
@@ -232,11 +234,15 @@ export class ProfileInfoComponent implements OnInit {
   }
 
   onCvTemplateChange(id: string | null) {
-    this.store.dispatch({ type: '[Templates] Set Selected CV Template', id });
+    this.store.dispatch(updateSelectedCvTemplate({ selectedCvTemplate: id }));
+    this.profile.update(p => ({ ...p, selectedCvTemplate: id }));
+    this.isDirty.set(true);
   }
 
   onClTemplateChange(id: string | null) {
-    this.store.dispatch({ type: '[Templates] Set Selected CL Template', id });
+    this.store.dispatch(updateSelectedClTemplate({ selectedClTemplate: id }));
+    this.profile.update(p => ({ ...p, selectedClTemplate: id }));
+    this.isDirty.set(true);
   }
 
   canEditCvTheme(): boolean {
