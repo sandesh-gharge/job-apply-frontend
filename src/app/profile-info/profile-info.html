@@ -194,7 +194,7 @@
     <!-- CV Themes -->
     <div class="agent-selection" style="margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: center;">
       <label style="font-weight: 500; color: var(--text-secondary);">{{ translate.t().profile.cvTheme }}:</label>
-      <select [ngModel]="selectedCvTemplateId()" (ngModelChange)="onCvTemplateChange($event)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
+      <select [ngModel]="safeSelectedCvTemplateId()" (ngModelChange)="onCvTemplateChange($event)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
          <option [ngValue]="null">{{ translate.t().profile.defaultCvTheme }}</option>
          @for (t of cvTemplates(); track t._id) {
            <option [ngValue]="t._id">{{ t.name }} {{ t.isPublic ? '(' + translate.t().profile.themePublic + ')' : '' }}</option>
@@ -207,7 +207,7 @@
     <!-- Cover Letter Themes -->
     <div class="agent-selection" style="display: flex; gap: 10px; align-items: center;">
       <label style="font-weight: 500; color: var(--text-secondary);">{{ translate.t().profile.clTheme }}:</label>
-      <select [ngModel]="selectedClTemplateId()" (ngModelChange)="onClTemplateChange($event)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
+      <select [ngModel]="safeSelectedClTemplateId()" (ngModelChange)="onClTemplateChange($event)" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
          <option [ngValue]="null">{{ translate.t().profile.defaultClTheme }}</option>
          @for (t of clTemplates(); track t._id) {
            <option [ngValue]="t._id">{{ t.name }} {{ t.isPublic ? '(' + translate.t().profile.themePublic + ')' : '' }}</option>

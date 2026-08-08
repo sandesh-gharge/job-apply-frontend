@@ -213,6 +213,18 @@ export class ProfileInfoComponent implements OnInit {
   clTemplates = this.store.selectSignal((state: any) => state.templates.clTemplates);
   selectedCvTemplateId = this.store.selectSignal(selectSelectedCvTemplate);
   selectedClTemplateId = this.store.selectSignal(selectSelectedClTemplate);
+
+  safeSelectedCvTemplateId = computed(() => {
+    const id = this.selectedCvTemplateId();
+    if (!id) return null;
+    return this.cvTemplates().find((t: any) => t._id === id) ? id : null;
+  });
+
+  safeSelectedClTemplateId = computed(() => {
+    const id = this.selectedClTemplateId();
+    if (!id) return null;
+    return this.clTemplates().find((t: any) => t._id === id) ? id : null;
+  });
   themePreviewHtml = this.store.selectSignal((state: any) => state.templates.previewHtml);
   includePublicThemes = signal(false);
 
