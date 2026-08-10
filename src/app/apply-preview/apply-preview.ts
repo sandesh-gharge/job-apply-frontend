@@ -4,7 +4,6 @@ import { firstValueFrom } from 'rxjs';
 import { JobsService } from '@app/utils/services/jobs.service';
 import { ToastService } from '@app/utils/services/toast.service';
 import { CoverLetterDocInfo } from '@app/utils/entities/cover-letter';
-import { CLService } from '@app/utils/services/cl.service';
 import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
 import { defaultCV } from '@app/utils/entities/cv';
@@ -15,6 +14,8 @@ import {
   selectJobDetails,
   selectCvDetails
 } from '@app/utils/store/apply-wizard/apply-wizard.selectors';
+import { setSelectedClTemplate, setSelectedCvTemplate } from '@app/utils/store/templates/templates.actions';
+import { selectedClTemplateId, selectedCvTemplateId } from '@app/utils/store/templates/templates.selector';
 
 @Component({
   selector: 'app-pdf-preview',
@@ -80,18 +81,19 @@ export class ApplyPreviewComponent {
 
   cvTemplates = this.store.selectSignal((state: any) => state.templates.cvTemplates);
   clTemplates = this.store.selectSignal((state: any) => state.templates.clTemplates);
-  selectedCvTemplateId = this.store.selectSignal((state: any) => state.templates.selectedCvTemplateId);
-  selectedClTemplateId = this.store.selectSignal((state: any) => state.templates.selectedClTemplateId);
+
+  selectedCvTemplateId = this.store.selectSignal(selectedCvTemplateId);
+  selectedClTemplateId = this.store.selectSignal(selectedClTemplateId);
 
   onCvTemplateChange(id: string | null) {
-    this.store.dispatch({ type: '[Templates] Set Selected CV Template', id });
+    this.store.dispatch(setSelectedCvTemplate({ id }));
     if (this.cvHtml()) { // If already generated, re-generate preview
       this.fetchPreview('cv');
     }
   }
 
   onClTemplateChange(id: string | null) {
-    this.store.dispatch({ type: '[Templates] Set Selected CL Template', id });
+    this.store.dispatch(setSelectedClTemplate({ id }));
     if (this.clHtml()) {
       this.fetchPreview('cl');
     }

@@ -67,3 +67,13 @@ export const selectProfileModelName = createSelector(
     selectActiveAgent,
     (agent) => agent?.modelName
 );
+
+export const selectCvTemplateId = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.selectedCvTemplate
+);
+
+export const selectClTemplateId = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.selectedClTemplate
+);

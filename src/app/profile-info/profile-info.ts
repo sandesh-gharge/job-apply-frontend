@@ -8,6 +8,7 @@ import { updateProfileInfo, updateSelectedAgentId, createAgent, updateAgent, upd
 import { ProfileService } from '@app/utils/services/profile.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { Router } from '@angular/router';
+import { createTemplate, updateTemplate } from '@app/utils/store/templates/templates.actions';
 
 @Component({
   selector: 'app-profile-info',
@@ -308,18 +309,16 @@ export class ProfileInfoComponent implements OnInit {
     const userId = this.profile().id;
     const { _id, ...themeData } = this.themeForm();
     if (this.isEditThemeMode() && _id) {
-      this.store.dispatch({
-        type: '[Templates] Update Template',
+      this.store.dispatch(updateTemplate({
         docType: this.themeDocType(),
         id: _id,
         template: { ...themeData, userId }
-      });
+      }));
     } else {
-      this.store.dispatch({
-        type: '[Templates] Create Template',
+      this.store.dispatch(createTemplate({
         docType: this.themeDocType(),
         template: { ...themeData, userId }
-      });
+      }));
     }
     this.closeThemeDialog();
   }

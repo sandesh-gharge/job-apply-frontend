@@ -18,3 +18,13 @@ export const selectPreviewHtml = createSelector(
   selectTemplatesState,
   (state: TemplatesState) => state.previewHtml
 );
+
+export const selectedCvTemplateId = createSelector(
+  selectTemplatesState,
+  (state: TemplatesState) => state.selectedCvTemplateId
+);
+
+export const selectedClTemplateId = createSelector(
+  selectTemplatesState,
+  (state: TemplatesState) => state.selectedClTemplateId
+);

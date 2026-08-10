@@ -56,3 +56,13 @@ export const previewTemplateSuccess = createAction(
   props<{ renderedHtml: string }>()
 );
 export const clearPreview = createAction('[Templates] Clear Preview');
+
+export const setSelectedCvTemplate = createAction(
+  '[Templates] Set Selected CV Template',
+  props<{ id: string | null }>()
+);
+
+export const setSelectedClTemplate = createAction(
+  '[Templates] Set Selected CL Template',
+  props<{ id: string | null }>()
+);
