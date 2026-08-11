@@ -100,7 +100,9 @@ export class CoverLetterComponent implements OnInit {
   titleDialogMode = signal<'saveAs' | 'rename' | null>(null);
   dialogTitle = '';
 
-
+  // Drag & drop state (sections)
+  dragSectionId = signal<string | null>(null);
+  dragOverId = signal<string | null>(null);
 
   isSaving = signal(false);
 
@@ -197,6 +199,49 @@ export class CoverLetterComponent implements OnInit {
         )
       }
     }));
+  }
+
+  // ── Drag & Drop (sections) ────────────────────────────────────
+  onSectionDragStart(id: string, e: DragEvent) {
+    this.dragSectionId.set(id);
+    e.dataTransfer!.effectAllowed = 'move';
+  }
+
+  onSectionDragOver(id: string, e: DragEvent) {
+    e.preventDefault();
+    this.dragOverId.set(id);
+  }
+
+  onSectionDrop(targetId: string) {
+    const fromId = this.dragSectionId();
+    if (!fromId || fromId === targetId) {
+      this.dragSectionId.set(null);
+      this.dragOverId.set(null);
+      return;
+    }
+    this.updateCl(info => {
+      const arr = [...info.clData.sectionPrompts];
+      const fromIdx = arr.findIndex(s => s.id === fromId);
+      const toIdx = arr.findIndex(s => s.id === targetId);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        const [item] = arr.splice(fromIdx, 1);
+        arr.splice(toIdx, 0, item);
+      }
+      return {
+        ...info,
+        clData: {
+          ...info.clData,
+          sectionPrompts: arr
+        }
+      };
+    });
+    this.dragSectionId.set(null);
+    this.dragOverId.set(null);
+  }
+
+  onSectionDragEnd() {
+    this.dragSectionId.set(null);
+    this.dragOverId.set(null);
   }
 
   updateCommonPrompt(val: string) {

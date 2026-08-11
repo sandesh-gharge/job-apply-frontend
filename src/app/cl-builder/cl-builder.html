@@ -106,10 +106,21 @@
     </div>
 
     @for (section of coverLetterInfo().clData.sectionPrompts; track section.id) {
-      <div class="section-card" [class.collapsed]="isSectionCollapsed(section.id)">
+      <div class="section-card" #secCard
+        [class.collapsed]="isSectionCollapsed(section.id)"
+        [class.drag-over]="dragOverId() === section.id"
+        (dragstart)="onSectionDragStart(section.id, $event)"
+        (dragover)="onSectionDragOver(section.id, $event)"
+        (drop)="onSectionDrop(section.id)"
+        (dragend)="onSectionDragEnd(); secCard.draggable = false">
 
         <!-- Section title row (also acts as collapse toggle) -->
         <div class="section-top">
+          <span class="drag-handle"
+                (mousedown)="secCard.draggable = true"
+                (mouseup)="secCard.draggable = false"
+                (mouseleave)="secCard.draggable = false"
+                (click)="$event.stopPropagation()">⠿</span>
           <button class="btn-collapse" (click)="toggleSection(section.id)" [title]="isSectionCollapsed(section.id) ? 'Expand' : 'Collapse'">
             <span class="chevron" [class.rotated]="isSectionCollapsed(section.id)">▾</span>
           </button>

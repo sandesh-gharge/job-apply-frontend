@@ -184,6 +184,23 @@
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &.drag-over {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
+  }
+}
+
+.drag-handle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: grab;
+  flex-shrink: 0;
+  user-select: none;
+
+  &:hover { color: var(--text-light); }
+  &:active { cursor: grabbing; }
 }
 
 .section-top {
