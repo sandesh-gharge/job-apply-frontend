@@ -1,6 +1,9 @@
 import { createReducer, on } from "@ngrx/store";
 import { CVState } from "./cv.state";
 import {
+    deleteCVInfo,
+    deleteCVInfoFailure,
+    deleteCVInfoSuccess,
     loadCVInfo,
     loadCVInfoFailure,
     loadCVInfoSuccess,
@@ -73,4 +76,31 @@ export const cvReducer = createReducer(
         ...state,
         selectedVersion: version
     })),
+
+    on(deleteCVInfo, (state) => ({
+        ...state,
+        loading: true
+    })),
+
+    on(deleteCVInfoSuccess, (state, { id }) => {
+        const deletedItem = state.cvInfoList.find(cv => cv.id === id);
+        const updatedList = state.cvInfoList.filter(cv => cv.id !== id);
+        let newSelectedVersion = state.selectedVersion;
+        if (deletedItem && deletedItem.version === state.selectedVersion) {
+            newSelectedVersion = updatedList.length > 0 ? updatedList[0].version : 0;
+        }
+        return {
+            ...state,
+            cvInfoList: updatedList,
+            selectedVersion: newSelectedVersion,
+            loading: false
+        };
+    }),
+
+    on(deleteCVInfoFailure, (state, { error }) => ({
+        ...state,
+        loading: false,
+        error
+    })),
 );
+

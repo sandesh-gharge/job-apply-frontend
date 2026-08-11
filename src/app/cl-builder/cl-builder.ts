@@ -8,7 +8,7 @@ import { AsyncPipe } from '@angular/common';
 import { CoverLetterSection, CoverLetterDocInfo, CoverLetterInfo, defaultcl } from '../utils/entities/cover-letter';
 import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo, selectProfileUseDefaultApi } from '../utils/store/profile/profile.selector';
-import { saveNewCoverLetterInfo, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
+import { deleteCoverLetterInfo, saveNewCoverLetterInfo, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
 import { AIServiceInterface, AIPrompt } from '../utils/services/ai-service/ai.service.interface';
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
@@ -66,17 +66,31 @@ export class CoverLetterComponent implements OnInit {
   }
 
   constructor() {
-    // Reactively load saved CL version when store is populated (e.g. after refresh)
+    // Reactively load saved CL version when store is populated (e.g. after refresh or deletion)
     const currentCL = this.store.selectSignal(selectCurrentCoverLetter);
     effect(() => {
       const current = currentCL();
-      if (current && !this.hasLoadedInitialData) {
+      if (current) {
         untracked(() => {
           this.hasLoadedInitialData = true;
           this.store.dispatch(setCoverLetterInfo({ coverLetterInfo: current }));
+          this.coverLetterTitle.set(current.title);
+        });
+      } else if (this.hasLoadedInitialData) {
+        untracked(() => {
+          this.store.dispatch(clearCoverLetterInfo());
+          this.coverLetterTitle.set('Cover Letter');
         });
       }
     });
+  }
+
+  deleteSelectedVersion() {
+    const current = this.coverLetterInfo();
+    if (!current || !current.id) return;
+    if (confirm(this.translate.t().clBuilder.deleteConfirm)) {
+      this.store.dispatch(deleteCoverLetterInfo({ id: current.id }));
+    }
   }
 
   private updateCl(updater: (c: CoverLetterInfo) => CoverLetterInfo) {

@@ -114,6 +114,8 @@ export const fallbackEn = {
     editMode: '✎ Edit Mode',
     saveBtn: '💾 Save',
     saveAsBtn: '💾 SaveAs',
+    deleteBtn: 'Delete',
+    deleteConfirm: 'Are you sure you want to delete this CV version?',
     clearBtn: '✕ Clear',
     editHint: '✎ Edit mode — checkboxes visible · Drag ⠿ handles to reorder sections and items',
     emptyBadge: 'empty',
@@ -287,7 +289,9 @@ export const fallbackEn = {
     toastCleared: 'CV cleared.',
     toastPrefilled: 'Skills pre-filled from job description!',
     toastTitleRequired: 'Title is required',
-    toastTitleUpdated: 'Title updated!'
+    toastTitleUpdated: 'Title updated!',
+    toastDeleted: 'CV version deleted.',
+    toastDeleteFailed: 'Failed to delete CV.'
   },
   clBuilder: {
     title: 'Cover Letter Generator',
@@ -337,7 +341,11 @@ export const fallbackEn = {
       saveAsBtn: 'Save As'
     },
     clearConfirm: 'Clear all Cover Letter data? This cannot be undone.',
+    deleteBtn: 'Delete',
+    deleteConfirm: 'Are you sure you want to delete this cover letter version?',
     toastCleared: 'Cover Letter cleared.',
+    toastDeleted: 'Cover letter version deleted.',
+    toastDeleteFailed: 'Failed to delete cover letter.',
     toastSectionGenerated: 'Section generated!',
     toastFullLetterGenerated: 'Cover letter generated!',
     toastGenerationFailed: 'Generation failed. Try again.',

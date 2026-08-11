@@ -47,6 +47,6 @@ export class CvService {
    * Delete a CV
    */
   deleteCV(id: string): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}cvs/${id}`);
+    return this.http.delete<any>(`${this.baseUrl}cv/${id}`);
   }
 }

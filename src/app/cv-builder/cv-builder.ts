@@ -6,7 +6,7 @@ import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, Cv
 import { Store } from '@ngrx/store';
 import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { selectCurrentCV, selectCVInfoList } from '../utils/store/cv/cv.selectors';
-import { saveNewCVInfo, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
+import { deleteCVInfo, saveNewCVInfo, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
 import { CvService } from '@app/utils/services/cv.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { selectProfileImageUrl } from '@app/utils/store/profile/profile.selector';
@@ -41,17 +41,29 @@ export class CvBuilderComponent implements OnInit {
   hasLoadedInitialData = false;
 
   constructor() {
-    // Reactively load data when store is populated (e.g. after refresh)
+    // Reactively load data when store is populated (e.g. after refresh or deletion)
     const currentCV = this.store.selectSignal(selectCurrentCV);
     effect(() => {
       const current = currentCV();
-      if (current && !this.hasLoadedInitialData) {
+      if (current) {
         untracked(() => {
           this.hasLoadedInitialData = true;
           this.store.dispatch(setCvDetails({ cvDetails: current }));
         });
+      } else if (this.hasLoadedInitialData) {
+        untracked(() => {
+          this.store.dispatch(clearCvDetails());
+        });
       }
     });
+  }
+
+  deleteSelectedVersion() {
+    const current = this.cv();
+    if (!current || !current.id) return;
+    if (confirm(this.translate.t().cvBuilder.deleteConfirm)) {
+      this.store.dispatch(deleteCVInfo({ id: current.id }));
+    }
   }
 
   private updateCv(updater: (c: CVInfo) => CVInfo) {

@@ -72,6 +72,15 @@
   }
 }
 
+.btn-danger-soft {
+  color: var(--error);
+
+  &:hover {
+    background: var(--error-bg);
+    border-color: var(--error);
+  }
+}
+
 /* ── Panel ─────────────────────────────────────────────── */
 .panel {
   background: var(--bg-card);

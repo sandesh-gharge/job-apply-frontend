@@ -1,5 +1,8 @@
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import {
+    deleteCoverLetterInfo,
+    deleteCoverLetterInfoFailure,
+    deleteCoverLetterInfoSuccess,
     loadCoverLetterInfo,
     loadCoverLetterInfoFailure,
     loadCoverLetterInfoSuccess,
@@ -14,6 +17,7 @@ import { catchError, map, of, switchMap } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { CLService } from "../../services/cl.service";
 import { ToastService } from "../../services/toast.service";
+import { TranslationService } from "../../services/translation/translation.service";
 import { loadProfileInfoSuccess } from "../profile/profile.actions";
 
 
@@ -22,6 +26,7 @@ export class CoverLetterEffects {
     private actions$ = inject(Actions);
     private clService = inject(CLService);
     private toast = inject(ToastService);
+    private translate = inject(TranslationService);
 
     /**
     loadCoverLetterOnProfileLoad$ = createEffect(() =>
@@ -88,4 +93,23 @@ export class CoverLetterEffects {
             )
         )
     );
+
+    deleteCoverLetterInfo$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(deleteCoverLetterInfo),
+            switchMap(({ id }) =>
+                this.clService.deleteCoverLetter(id).pipe(
+                    map(() => {
+                        this.toast.show(this.translate.t().clBuilder.toastDeleted);
+                        return deleteCoverLetterInfoSuccess({ id });
+                    }),
+                    catchError((error: any) => {
+                        this.toast.show(this.translate.t().clBuilder.toastDeleteFailed, 'error');
+                        return of(deleteCoverLetterInfoFailure({ error: error?.message ?? 'Cover Letter delete failed' }));
+                    })
+                )
+            )
+        )
+    );
 }
+

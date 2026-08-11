@@ -53,3 +53,18 @@ export const selectCVVersion = createAction(
     '[CV] Select CV Version',
     props<{ version: number }>()
 );
+
+export const deleteCVInfo = createAction(
+    '[CV] Delete CV Info',
+    props<{ id: string }>()
+);
+
+export const deleteCVInfoSuccess = createAction(
+    '[CV] Delete CV Info Success',
+    props<{ id: string }>()
+);
+
+export const deleteCVInfoFailure = createAction(
+    '[CV] Delete CV Info Failure',
+    props<{ error: string }>()
+);

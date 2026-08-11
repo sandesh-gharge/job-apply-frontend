@@ -3,8 +3,12 @@ import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { catchError, map, of, switchMap } from "rxjs";
 import { CvService } from "../../services/cv.service";
 import { ToastService } from "../../services/toast.service";
+import { TranslationService } from "../../services/translation/translation.service";
 import { loadProfileInfoSuccess } from "../profile/profile.actions";
 import {
+    deleteCVInfo,
+    deleteCVInfoFailure,
+    deleteCVInfoSuccess,
     loadCVInfo,
     loadCVInfoFailure,
     loadCVInfoSuccess,
@@ -21,6 +25,7 @@ export class CVEffects {
     private actions$ = inject(Actions);
     private cvService = inject(CvService);
     private toast = inject(ToastService);
+    private translate = inject(TranslationService);
 
     /**
          loadCVOnProfileLoad$ = createEffect(() =>
@@ -86,4 +91,23 @@ export class CVEffects {
             )
         )
     );
+
+    deleteCVInfo$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(deleteCVInfo),
+            switchMap(({ id }) =>
+                this.cvService.deleteCV(id).pipe(
+                    map(() => {
+                        this.toast.show(this.translate.t().cvBuilder.toastDeleted);
+                        return deleteCVInfoSuccess({ id });
+                    }),
+                    catchError((error: any) => {
+                        this.toast.show(this.translate.t().cvBuilder.toastDeleteFailed, 'error');
+                        return of(deleteCVInfoFailure({ error: error?.message ?? 'CV delete failed' }));
+                    })
+                )
+            )
+        )
+    );
 }
+

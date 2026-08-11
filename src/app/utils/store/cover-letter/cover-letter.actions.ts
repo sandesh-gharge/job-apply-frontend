@@ -53,3 +53,19 @@ export const selectCoverLetterVersion = createAction(
     '[Cover Letter] Select Cover Letter Version',
     props<{ version: number }>()
 );
+
+export const deleteCoverLetterInfo = createAction(
+    '[Cover Letter] Delete Cover Letter Info',
+    props<{ id: string }>()
+);
+
+export const deleteCoverLetterInfoSuccess = createAction(
+    '[Cover Letter] Delete Cover Letter Info Success',
+    props<{ id: string }>()
+);
+
+export const deleteCoverLetterInfoFailure = createAction(
+    '[Cover Letter] Delete Cover Letter Info Failure',
+    props<{ error: string }>()
+);
+

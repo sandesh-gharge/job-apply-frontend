@@ -1,6 +1,9 @@
 import { createReducer, on } from "@ngrx/store";
 import { CoverLetterState } from "./cover-letter.state";
 import {
+    deleteCoverLetterInfo,
+    deleteCoverLetterInfoFailure,
+    deleteCoverLetterInfoSuccess,
     loadCoverLetterInfo,
     loadCoverLetterInfoFailure,
     loadCoverLetterInfoSuccess,
@@ -75,4 +78,31 @@ export const coverLetterReducer = createReducer(
         ...state,
         selectedVersion: version
     })),
+
+    on(deleteCoverLetterInfo, (state) => ({
+        ...state,
+        loading: true
+    })),
+
+    on(deleteCoverLetterInfoSuccess, (state, { id }) => {
+        const deletedItem = state.coverLetterInfoList.find(cl => cl.id === id);
+        const updatedList = state.coverLetterInfoList.filter(cl => cl.id !== id);
+        let newSelectedVersion = state.selectedVersion;
+        if (deletedItem && deletedItem.version === state.selectedVersion) {
+            newSelectedVersion = updatedList.length > 0 ? updatedList[0].version : 0;
+        }
+        return {
+            ...state,
+            coverLetterInfoList: updatedList,
+            selectedVersion: newSelectedVersion,
+            loading: false
+        };
+    }),
+
+    on(deleteCoverLetterInfoFailure, (state, { error }) => ({
+        ...state,
+        loading: false,
+        error
+    })),
 );
+
