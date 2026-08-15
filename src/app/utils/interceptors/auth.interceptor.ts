@@ -19,11 +19,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const isRefreshRequest = req.url.includes('auth/refresh');
+  const isAuthEndpoint =
+    req.url.includes('auth/login') ||
+    req.url.includes('auth/signup') ||
+    req.url.includes('auth/refresh') ||
+    req.url.includes('auth/logout');
   const token = sessionStorage.getItem('access_token');
 
   let authReq = req;
-  if (token && !isRefreshRequest) {
+  if (token && !isAuthEndpoint) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
@@ -33,7 +37,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isRefreshRequest) {
+      if (error.status === 401 && !isAuthEndpoint) {
         const refreshToken =
           sessionStorage.getItem('refresh_token');
 

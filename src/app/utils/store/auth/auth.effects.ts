@@ -101,10 +101,12 @@ export class AuthEffects {
             ofType(logout),
             tap(() => {
                 this.isFreshLogin = false; // reset flag
+                this.authService.logout().subscribe({
+                    error: (err) => console.warn('[AuthEffects] Backend logout call error:', err)
+                });
                 sessionStorage.removeItem('user');
                 sessionStorage.removeItem('access_token');
                 sessionStorage.removeItem('refresh_token');
-                this.authService.logout();
                 this.router.navigate(['/login']);
             }),
 
