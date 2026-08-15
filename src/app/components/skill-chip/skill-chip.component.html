@@ -1,0 +1,15 @@
+﻿@if (editing()) {
+  <input class="skill-chip-edit-input"
+    [(ngModel)]="editValue"
+    (keydown.enter)="commit(); $event.preventDefault()"
+    (keydown.escape)="cancel()"
+    (blur)="commit()" />
+} @else {
+  <span class="cv-chip" [class.interest]="variant() === 'interest'"
+        (dblclick)="startEdit()">
+    <ng-content />
+    @if (removable()) {
+      <button class="chip-x" (click)="removed.emit(); $event.stopPropagation()">&#x2715;</button>
+    }
+  </span>
+}

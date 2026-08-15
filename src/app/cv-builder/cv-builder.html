@@ -296,9 +296,9 @@
                     <div class="skill-row-label">{{ def.label }}</div>
                     <div class="chips-wrap">
                       @for (s of $any(cv().cvData.skills)[def.f]; track s; let si = $index) {
-                        <span class="cv-chip">{{ s }}
-                          <button class="chip-x" (click)="removeSkillFromList($any(def.f), si)">✕</button>
-                        </span>
+                        <app-skill-chip [value]="s"
+                          (valueChange)="updateSkillInList($any(def.f), si, $event)"
+                          (removed)="removeSkillFromList($any(def.f), si)">{{ s }}</app-skill-chip>
                       }
                       <div class="chip-add-row">
                         <input class="chip-input" [placeholder]="def.ph"
@@ -359,7 +359,9 @@
                   <div class="sub-label">{{ translate.t().cvBuilder.projects.technologies }}</div>
                   <div class="chips-wrap">
                     @for (t of proj.technologies; track t; let ti = $index) {
-                      <span class="cv-chip">{{ t }}<button class="chip-x" (click)="removeProjectTech(proj.id, ti)">✕</button></span>
+                      <app-skill-chip [value]="t"
+                        (valueChange)="updateProjectTech(proj.id, ti, $event)"
+                        (removed)="removeProjectTech(proj.id, ti)">{{ t }}</app-skill-chip>
                     }
                     <div class="chip-add-row">
                       <input class="chip-input" [placeholder]="translate.t().cvBuilder.projects.placeholderTech"
@@ -553,9 +555,10 @@
             @if (sec.id === 'interests') {
               <div class="chips-wrap">
                 @for (interest of cv().cvData.interests; track interest; let ii = $index) {
-                  <span class="cv-chip interest">{{ interest }}
-                    @if (editMode()) { <button class="chip-x" (click)="removeInterest(ii)">✕</button> }
-                  </span>
+                  <app-skill-chip [value]="interest" variant="interest"
+                    [removable]="editMode()"
+                    (valueChange)="updateInterest(ii, $event)"
+                    (removed)="removeInterest(ii)">{{ interest }}</app-skill-chip>
                 }
                 <div class="chip-add-row">
                   <input class="chip-input" [placeholder]="translate.t().cvBuilder.interests.placeholder"

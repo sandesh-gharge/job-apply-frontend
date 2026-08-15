@@ -181,17 +181,6 @@
   text-transform: uppercase; letter-spacing: 0.03em; padding-top: 6px;
 }
 .chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; align-items: center; }
-.cv-chip {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: var(--primary-light); color: var(--primary-light-text); border-radius: 20px;
-  padding: 3px 10px; font-size: 0.78rem; font-weight: 500;
-  &.interest { background: var(--success-bg); color: var(--success-text); }
-}
-.chip-x {
-  background: none; border: none; color: var(--text-muted); cursor: pointer;
-  font-size: 0.62rem; padding: 0; line-height: 1;
-  &:hover { color: var(--primary-light-text); }
-}
 .chip-add-row { display: flex; gap: 4px; }
 .chip-input {
   padding: 4px 8px; border: 1px dashed var(--border-dark); border-radius: 20px;

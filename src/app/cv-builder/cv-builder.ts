@@ -12,6 +12,7 @@ import { TranslationService } from '@app/utils/services/translation/translation.
 import { selectProfileImageUrl } from '@app/utils/store/profile/profile.selector';
 import { setCvDetails, clearCvDetails } from '@app/utils/store/apply-wizard/apply-wizard.actions';
 import { selectCvDetails } from '@app/utils/store/apply-wizard/apply-wizard.selectors';
+import { SkillChipComponent } from '../components/skill-chip/skill-chip.component';
 
 
 
@@ -21,7 +22,7 @@ const PROFICIENCY_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'];
 
 @Component({
   selector: 'app-cv-builder',
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, SkillChipComponent],
   templateUrl: './cv-builder.html',
   styleUrl: './cv-builder.scss'
 })
@@ -122,6 +123,7 @@ export class CvBuilderComponent implements OnInit {
   newToolInput = signal('');
   newFrameworkInput = signal('');
   newHtmlInput = signal('');
+
 
   getSectionLabel(id: string): string {
     const keys: Record<string, string> = {
@@ -309,6 +311,13 @@ export class CvBuilderComponent implements OnInit {
       return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
     });
   }
+  updateSkillInList(field: keyof Omit<CvSkills, 'languages'>, idx: number, value: string) {
+    this.updateCv(c => {
+      const arr = [...c.cvData.skills[field] as string[]];
+      arr[idx] = value;
+      return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
+    });
+  }
 
   // ── Experience ─────────────────────────────────────────────────
   addExperience() {
@@ -353,6 +362,12 @@ export class CvBuilderComponent implements OnInit {
   removeProjectTech(id: string, idx: number) {
     this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => { if (p.id !== id) return p; const t = [...p.technologies]; t.splice(idx, 1); return { ...p, technologies: t }; }) } }));
   }
+  updateProjectTech(id: string, idx: number, value: string) {
+    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => {
+      if (p.id !== id) return p;
+      const t = [...p.technologies]; t[idx] = value; return { ...p, technologies: t };
+    }) } }));
+  }
 
   // ── Certifications ────────────────────────────────────────────
   addCertification() {
@@ -390,6 +405,7 @@ export class CvBuilderComponent implements OnInit {
     this.newInterest.set('');
   }
   removeInterest(idx: number) { this.updateCv(c => { const a = [...c.cvData.interests]; a.splice(idx, 1); return { ...c, cvData: { ...c.cvData, interests: a } }; }); }
+  updateInterest(idx: number, value: string) { this.updateCv(c => { const a = [...c.cvData.interests]; a[idx] = value; return { ...c, cvData: { ...c.cvData, interests: a } }; }); }
 
   // ── References ────────────────────────────────────────────────
   addReference() {
