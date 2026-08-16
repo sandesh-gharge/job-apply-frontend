@@ -8,9 +8,12 @@ export interface CvPersonalInfo {
   address: string; links: CvLinks; languages: CvLanguage[];
 }
 export interface CvLanguage { language: string; proficiency: string; }
-export interface CvSkills {
-  frontend: string[]; backend: string[]; devops: string[];
+export interface CvSkillCategory {
+  category: string;
+  include: boolean;
+  items: string[];
 }
+export type CvSkills = CvSkillCategory[];
 export interface CvExperience {
   id: string; jobTitle: string; company: string; location: string;
   startDate: string; endDate: string; current: boolean;
@@ -101,11 +104,7 @@ export const defaultCV = (): CVInfo => ({
       languages: []
     },
     summary: '',
-    skills: {
-      frontend: [],
-      backend: [],
-      devops: []
-    },
+    skills: [],
     experience: [],
     education: [],
     projects: [],

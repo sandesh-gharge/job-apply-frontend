@@ -2,7 +2,7 @@ import { Component, signal, inject, computed, Input, OnInit, effect, untracked }
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
-import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, CvProject, CvSection, CvSkills, defaultCV } from '../utils/entities/cv';
+import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, CvProject, CvSection, CvSkills, CvSkillCategory, defaultCV } from '../utils/entities/cv';
 import { Store } from '@ngrx/store';
 import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { selectCurrentCV, selectCVInfoList } from '../utils/store/cv/cv.selectors';
@@ -34,7 +34,29 @@ export class CvBuilderComponent implements OnInit {
   public translate = inject(TranslationService);
 
   private storedCv = this.store.selectSignal(selectCvDetails);
-  cv = computed(() => this.storedCv() || defaultCV());
+  cv = computed(() => {
+    let current = this.storedCv() || defaultCV();
+    // Migrate legacy skills dictionary to array
+    if (current && current.cvData && current.cvData.skills && !Array.isArray(current.cvData.skills)) {
+      const legacySkills: any = current.cvData.skills;
+      const migratedSkills: CvSkillCategory[] = [];
+      for (const key of Object.keys(legacySkills)) {
+        migratedSkills.push({
+          category: key,
+          include: legacySkills[key]?.include ?? true,
+          items: legacySkills[key]?.items || []
+        });
+      }
+      current = {
+        ...current,
+        cvData: {
+          ...current.cvData,
+          skills: migratedSkills as any
+        }
+      };
+    }
+    return current;
+  });
   cvInfoList = this.store.selectSignal(selectCVInfoList);
   profileImageUrl = this.store.selectSignal(selectProfileImageUrl)
   userID = this.store.selectSignal(selectUserID);
@@ -76,28 +98,30 @@ export class CvBuilderComponent implements OnInit {
   }
 
   // Optional: pre-fill from job description skills
+  // Optional: pre-fill from job description skills
   @Input() set prefillSkills(groups: Array<{ category: string; skills: string[] }>) {
     if (!groups?.length) return;
-    const cv = this.cv().cvData;
-    const frontend = groups.find(g => g.category === 'Frontend')?.skills ?? [];
-    const backend = groups.find(g => g.category === 'Backend')?.skills ?? [];
-    const devops = [
-      ...(groups.find(g => g.category === 'DevOps Tools')?.skills ?? []),
-      ...(groups.find(g => g.category === 'Monitoring Tools')?.skills ?? []),
-      ...(groups.find(g => g.category === 'Cloud Platforms')?.skills ?? []),
-    ];
-    this.updateCv(c => ({
-      ...c,
-      cvData: {
-        ...c.cvData,
-        skills: {
-          ...c.cvData.skills,
-          frontend: [...new Set([...c.cvData.skills.frontend, ...frontend])],
-          backend: [...new Set([...c.cvData.skills.backend, ...backend])],
-          devops: [...new Set([...c.cvData.skills.devops, ...devops])],
-        },
-      }
-    }));
+    this.updateCv(c => {
+      const skills = Array.isArray(c.cvData.skills) ? [...c.cvData.skills] : [];
+      groups.forEach(g => {
+        let catIndex = skills.findIndex((s: any) => s.category === g.category);
+        if (catIndex === -1) {
+          skills.push({ category: g.category, include: true, items: [] } as any);
+          catIndex = skills.length - 1;
+        }
+        skills[catIndex] = {
+          ...skills[catIndex],
+          items: [...new Set([...skills[catIndex].items, ...g.skills])]
+        };
+      });
+      return {
+        ...c,
+        cvData: {
+          ...c.cvData,
+          skills: skills as any
+        }
+      };
+    });
   }
 
   // Global edit mode — shows checkboxes and edit controls
@@ -123,6 +147,7 @@ export class CvBuilderComponent implements OnInit {
   newToolInput = signal('');
   newFrameworkInput = signal('');
   newHtmlInput = signal('');
+  newSkillCategoryInput = signal('');
 
 
   getSectionLabel(id: string): string {
@@ -299,24 +324,98 @@ export class CvBuilderComponent implements OnInit {
   }
 
   // ── Skills ────────────────────────────────────────────────────
-  addSkillToList(field: keyof Omit<CvSkills, 'languages'>, value: string) {
+  addSkillCategory() {
+    const cat = this.newSkillCategoryInput().trim();
+    if (!cat) return;
+    this.updateCv(c => {
+      const skills = Array.isArray(c.cvData.skills) ? [...c.cvData.skills] : [];
+      if (skills.some((s: any) => s.category === cat)) return c;
+      skills.push({ category: cat, include: true, items: [] } as any);
+      return {
+        ...c,
+        cvData: { ...c.cvData, skills: skills as any }
+      };
+    });
+    this.newSkillCategoryInput.set('');
+  }
+  removeSkillCategory(category: string) {
+    this.updateCv(c => {
+      const skills = Array.isArray(c.cvData.skills) ? c.cvData.skills.filter((s: any) => s.category !== category) : [];
+      return { ...c, cvData: { ...c.cvData, skills: skills as any } };
+    });
+  }
+  toggleSkillCategoryInclude(category: string) {
+    this.updateCv(c => {
+      const skills = Array.isArray(c.cvData.skills) ? c.cvData.skills.map((s: any) => s.category === category ? { ...s, include: !s.include } : s) : [];
+      return { ...c, cvData: { ...c.cvData, skills: skills as any } };
+    });
+  }
+  addSkillToList(category: string, value: string) {
     const v = value.trim();
     if (!v) return;
-    this.updateCv(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: [...c.cvData.skills[field] as string[], v] } } }));
-  }
-  removeSkillFromList(field: keyof Omit<CvSkills, 'languages'>, idx: number) {
     this.updateCv(c => {
-      const arr = [...c.cvData.skills[field] as string[]];
+      const skills = Array.isArray(c.cvData.skills) ? [...c.cvData.skills] : [];
+      let catIndex = skills.findIndex((s: any) => s.category === category);
+      if (catIndex === -1) {
+        skills.push({ category, include: true, items: [] } as any);
+        catIndex = skills.length - 1;
+      }
+      skills[catIndex] = {
+        ...skills[catIndex],
+        items: [...skills[catIndex].items, v]
+      };
+      return { ...c, cvData: { ...c.cvData, skills: skills as any } };
+    });
+  }
+  removeSkillFromList(category: string, idx: number) {
+    this.updateCv(c => {
+      const skills = Array.isArray(c.cvData.skills) ? [...c.cvData.skills] : [];
+      const catIndex = skills.findIndex((s: any) => s.category === category);
+      if (catIndex === -1) return c;
+      const arr = [...skills[catIndex].items];
       arr.splice(idx, 1);
-      return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
+      skills[catIndex] = { ...skills[catIndex], items: arr };
+      return { ...c, cvData: { ...c.cvData, skills: skills as any } };
     });
   }
-  updateSkillInList(field: keyof Omit<CvSkills, 'languages'>, idx: number, value: string) {
+  updateSkillInList(category: string, idx: number, value: string) {
     this.updateCv(c => {
-      const arr = [...c.cvData.skills[field] as string[]];
+      const skills = Array.isArray(c.cvData.skills) ? [...c.cvData.skills] : [];
+      const catIndex = skills.findIndex((s: any) => s.category === category);
+      if (catIndex === -1) return c;
+      const arr = [...skills[catIndex].items];
       arr[idx] = value;
-      return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
+      skills[catIndex] = { ...skills[catIndex], items: arr };
+      return { ...c, cvData: { ...c.cvData, skills: skills as any } };
     });
+  }
+
+  // ── Drag & Drop (skills categories) ─────────────────────────────
+  dragSkillCatIdx = signal<number | null>(null);
+
+  onSkillCatDragStart(idx: number, e: DragEvent) {
+    this.dragSkillCatIdx.set(idx);
+    e.dataTransfer!.effectAllowed = 'move';
+  }
+  onSkillCatDragOver(e: DragEvent) {
+    e.preventDefault();
+  }
+  onSkillCatDrop(targetIdx: number) {
+    const fromIdx = this.dragSkillCatIdx();
+    if (fromIdx === null || fromIdx === targetIdx) {
+      this.dragSkillCatIdx.set(null);
+      return;
+    }
+    this.updateCv(c => {
+      const skills = Array.isArray(c.cvData.skills) ? [...c.cvData.skills] : [];
+      const [moved] = skills.splice(fromIdx, 1);
+      skills.splice(targetIdx, 0, moved);
+      return { ...c, cvData: { ...c.cvData, skills: skills as any } };
+    });
+    this.dragSkillCatIdx.set(null);
+  }
+  onSkillCatDragEnd() {
+    this.dragSkillCatIdx.set(null);
   }
 
   // ── Experience ─────────────────────────────────────────────────
@@ -538,7 +637,8 @@ export class CvBuilderComponent implements OnInit {
     check(c.personalInfo.email); check(c.personalInfo.phone);
     check(c.personalInfo.headline); check(c.personalInfo.address);
     check(c.personalInfo.languages);
-    check(c.summary); check(c.skills.frontend); check(c.skills.backend); check(c.skills.devops);
+    check(c.summary);
+    (Array.isArray(c.skills) ? c.skills : Object.values(c.skills)).forEach((cat: any) => check(cat.items));
     check(c.experience.length); check(c.education.length);
     return Math.round((score / total) * 100);
   });
@@ -550,7 +650,7 @@ export class CvBuilderComponent implements OnInit {
       case 'summary': return !!c.summary;
       case 'experience': return c.experience.length > 0;
       case 'education': return c.education.length > 0;
-      case 'skills': return c.skills.frontend.length > 0 || c.skills.backend.length > 0 || c.skills.devops.length > 0;
+      case 'skills': return (Array.isArray(c.skills) ? c.skills : Object.values(c.skills)).some((cat: any) => cat.items.length > 0);
       case 'projects': return c.projects.length > 0;
       case 'certifications': return c.certifications.length > 0;
       case 'awards': return c.awards.length > 0;

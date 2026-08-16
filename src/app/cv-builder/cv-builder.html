@@ -287,25 +287,44 @@
             <!-- ══ SKILLS ══════════════════════════════════════════ -->
             @if (sec.id === 'skills') {
               <div class="skills-builder">
-                @for (def of [
-                  {f:'frontend',  label: translate.t().cvBuilder.skills.frontend,       ph: translate.t().cvBuilder.skills.placeholderFrontend},
-                  {f:'backend',   label: translate.t().cvBuilder.skills.backend,        ph: translate.t().cvBuilder.skills.placeholderBackend},
-                  {f:'devops',    label: translate.t().cvBuilder.skills.devops, ph: translate.t().cvBuilder.skills.placeholderDevops}
-                ]; track def.f) {
-                  <div class="skill-row">
-                    <div class="skill-row-label">{{ def.label }}</div>
+                <!-- Add new skill category -->
+                <div class="add-category-row" style="margin-bottom: 1rem; display: flex; gap: 8px;">
+                  <input type="text" class="chip-input" style="flex: 1" [ngModel]="newSkillCategoryInput()" (ngModelChange)="newSkillCategoryInput.set($event)" placeholder="New Skill Category (e.g. Cloud, Soft Skills)" (keydown.enter)="addSkillCategory()" />
+                  <button class="btn-add-item" style="margin: 0" (click)="addSkillCategory()">Add Category</button>
+                </div>
+                
+                @for (cat of cv().cvData.skills; track cat.category; let ci = $index) {
+                  <div class="skill-row" #skillRow
+                    [class.drag-over]="dragSkillCatIdx() === ci"
+                    (dragstart)="onSkillCatDragStart(ci, $event)"
+                    (dragover)="onSkillCatDragOver($event)"
+                    (drop)="onSkillCatDrop(ci)"
+                    (dragend)="onSkillCatDragEnd(); skillRow.draggable = false">
+                    
+                    <div class="skill-row-label">
+                      <span class="drag-handle sm"
+                            (mousedown)="skillRow.draggable = true" 
+                            (mouseup)="skillRow.draggable = false" 
+                            (mouseleave)="skillRow.draggable = false" 
+                            style="cursor: grab; margin-right: 8px;">⠿</span>
+                      @if (editMode()) {
+                        <input type="checkbox" [checked]="cat.include" (change)="toggleSkillCategoryInclude(cat.category)" title="Include category" />
+                      }
+                      {{ cat.category }}
+                      <button class="btn-x sm" style="margin-left: 8px; float: right;" (click)="removeSkillCategory(cat.category)" title="Delete category">✕</button>
+                    </div>
                     <div class="chips-wrap">
-                      @for (s of $any(cv().cvData.skills)[def.f]; track s; let si = $index) {
+                      @for (s of cat.items; track s; let si = $index) {
                         <app-skill-chip [value]="s"
-                          (valueChange)="updateSkillInList($any(def.f), si, $event)"
-                          (removed)="removeSkillFromList($any(def.f), si)">{{ s }}</app-skill-chip>
+                          (valueChange)="updateSkillInList(cat.category, si, $event)"
+                          (removed)="removeSkillFromList(cat.category, si)">{{ s }}</app-skill-chip>
                       }
                       <div class="chip-add-row">
-                        <input class="chip-input" [placeholder]="def.ph"
-                          [ngModel]="newSkillInputs[def.f]"
-                          (ngModelChange)="newSkillInputs[def.f]=$event"
-                          (keydown.enter)="addSkillToList($any(def.f), newSkillInputs[def.f]); newSkillInputs[def.f]=''" />
-                        <button class="btn-chip-add" (click)="addSkillToList($any(def.f),newSkillInputs[def.f]); newSkillInputs[def.f]=''">+</button>
+                        <input class="chip-input" placeholder="Add skill..."
+                          [ngModel]="newSkillInputs[cat.category]"
+                          (ngModelChange)="newSkillInputs[cat.category]=$event"
+                          (keydown.enter)="addSkillToList(cat.category, newSkillInputs[cat.category]); newSkillInputs[cat.category]=''" />
+                        <button class="btn-chip-add" (click)="addSkillToList(cat.category, newSkillInputs[cat.category]); newSkillInputs[cat.category]=''">+</button>
                       </div>
                     </div>
                   </div>
