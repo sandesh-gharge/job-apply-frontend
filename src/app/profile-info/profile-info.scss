@@ -126,7 +126,7 @@
     letter-spacing: 0.03em;
   }
 
-  input {
+  input, textarea {
     padding: 7px 10px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -137,6 +137,7 @@
     background: var(--bg-card);
     color: var(--text-primary);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
 
     &:focus {
       border-color: var(--primary);
@@ -434,7 +435,7 @@
   }
 }
 
-.field input:disabled {
+.field input:disabled, .field textarea:disabled {
   background: var(--bg-subtle, #f3f4f6);
   color: var(--text-muted, #9ca3af);
   border-color: var(--border-color, #e5e7eb);

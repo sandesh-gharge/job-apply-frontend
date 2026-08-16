@@ -8,6 +8,7 @@ import { distinctUntilChanged, filter, Subject, takeUntil } from 'rxjs';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { NameLogo } from "@app/name-logo/name-logo";
 import { selectProfileLoading } from '@app/utils/store/profile/profile.selector';
+import { ThemeService } from '@app/utils/services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private store = inject(Store);
   public translate = inject(TranslationService);
+  public themeService = inject(ThemeService);
   private destroy$ = new Subject<void>();
 
   
