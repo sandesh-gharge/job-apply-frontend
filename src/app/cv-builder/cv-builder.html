@@ -134,10 +134,12 @@
               <div class="lang-list">
                 <div class="chips-wrap">
                   @for (lang of cv().cvData.personalInfo.languages || []; track lang.language + $index; let li = $index) {
-                    <span class="cv-chip">
+                    <app-skill-chip 
+                      [value]="lang.language" 
+                      [editable]="false"
+                      (removed)="removeLanguage(li)">
                       {{ lang.language }} ({{ lang.proficiency }})
-                      <button class="chip-x" (click)="removeLanguage(li)">✕</button>
-                    </span>
+                    </app-skill-chip>
                   }
                 </div>
                 <div class="lang-row">

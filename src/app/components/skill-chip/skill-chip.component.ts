@@ -1,4 +1,4 @@
-﻿import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -13,6 +13,7 @@ export class SkillChipComponent {
   value     = input.required<string>();
   variant   = input<'default' | 'interest'>('default');
   removable = input<boolean>(true);
+  editable  = input<boolean>(true);
 
   // Outputs
   valueChange = output<string>();
@@ -23,6 +24,7 @@ export class SkillChipComponent {
   editValue = '';
 
   startEdit() {
+    if (!this.editable()) return;
     this.editValue = this.value();
     this.editing.set(true);
     setTimeout(() => {
