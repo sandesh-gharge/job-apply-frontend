@@ -21,7 +21,7 @@ A personal job application assistant built for the job market where cover letter
 - **State** — Angular Signals + NgRx (Store, Effects, Actions, Selectors)
 - **Styling** — Component-scoped SCSS, CSS custom properties for theming
 - **AI** — Anthropic Claude API (`claude-sonnet-4-20250514`)
-- **PDF** — jsPDF
+- **PDF** — Backend API Service
 
 ---
 
@@ -93,7 +93,7 @@ Step 3 — CV Builder
 | Include/exclude | Per section and per item (responsibilities, bullets) |
 | Drag & drop | Reorder sections, experience entries, responsibilities |
 | Autosave | Debounced save to localStorage every 800ms |
-| PDF export | A4 skills summary PDF via jsPDF |
+| PDF export | A4 skills summary PDF via backend API |
 | JSON export | Full CV data as `.json` |
 | Prefill | Skills auto-populated from job description in wizard |
 | Completion score | Progress indicator for key fields |
