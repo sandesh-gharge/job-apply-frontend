@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed, effect } from '@angular/core';
+import { Component, signal, inject, computed, effect, ViewChild, ElementRef } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { JobsService } from '@app/utils/services/jobs.service';
@@ -30,6 +30,9 @@ export class ApplyPreviewComponent {
   private sanitizer = inject(DomSanitizer);
   public translate = inject(TranslationService);
   private store = inject(Store);
+
+  @ViewChild('cvIframe') cvIframe?: ElementRef<HTMLIFrameElement>;
+  @ViewChild('clIframe') clIframe?: ElementRef<HTMLIFrameElement>;
 
   private cvPreviewUrl = signal<SafeResourceUrl | null>(null);
   private clPreviewUrl = signal<SafeResourceUrl | null>(null);
@@ -118,7 +121,31 @@ export class ApplyPreviewComponent {
       if (!html) throw new Error('No preview content returned');
       this.clHtml.set(type === 'cl' ? html : this.clHtml());
       this.cvHtml.set(type === 'cv' ? html : this.cvHtml());
-      const blob = new Blob([html], { type: 'text/html' });
+
+      // Inject title for print PDF output name and print CSS rules
+      let styledHtml = html;
+      const firstName = this.profileInfo()?.firstName || 'Document';
+      const lastName = this.profileInfo()?.lastName || '';
+      const docTypeLabel = type === 'cv' ? 'CV' : 'Cover_Letter';
+      const docTitle = `${firstName}_${lastName}_${docTypeLabel}`.trim();
+
+      const printHeadEnhancement = `
+        <title>${docTitle}</title>
+        <style>
+          @page { size: A4 portrait; margin: 0; }
+          @media print {
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          }
+        </style>
+      `;
+
+      if (styledHtml.includes('<head>')) {
+        styledHtml = styledHtml.replace('<head>', `<head>${printHeadEnhancement}`);
+      } else {
+        styledHtml = `<!DOCTYPE html><html><head>${printHeadEnhancement}</head><body>${styledHtml}</body></html>`;
+      }
+
+      const blob = new Blob([styledHtml], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
 
@@ -146,33 +173,25 @@ export class ApplyPreviewComponent {
     } else {
       this.clLoading.set(true);
     }
-    const data = type === 'cv' ? this.cvHtml() : this.clHtml();
-
-    const name = [this.profileInfo()?.firstName,this.profileInfo()?.lastName].join("_");
 
     try {
-      const blob = await firstValueFrom(this.jobsService.downloadPDF(type, { html : data }));
-      if (!blob) {
-        this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailDownloadCv : this.translate.t().applyPreview.toastFailDownloadCl, 'error');
-        return;
+      const hasPreview = type === 'cv' ? !!this.cvPreviewUrl() : !!this.clPreviewUrl();
+      if (!hasPreview) {
+        await this.fetchPreview(type);
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-     const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = type === 'cv' ? 'cv-preview.pdf' : 'cover-letter-preview.pdf';
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.open(link.href, '_blank');
-      });
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const iframeEl = type === 'cv' ? this.cvIframe?.nativeElement : this.clIframe?.nativeElement;
 
-      this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastDownloadedCv : this.translate.t().applyPreview.toastDownloadedCl);
+      if (iframeEl && iframeEl.contentWindow) {
+        iframeEl.contentWindow.focus();
+        iframeEl.contentWindow.print();
+        this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastDownloadedCv : this.translate.t().applyPreview.toastDownloadedCl);
+      } else {
+        throw new Error('Iframe element or contentWindow is unavailable');
+      }
     } catch (error) {
-      console.error(`Error downloading ${type} PDF:`, error);
+      console.error(`Error printing ${type} PDF:`, error);
       this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailDownloadCv : this.translate.t().applyPreview.toastFailDownloadCl, 'error');
     } finally {
       if (type === 'cv') {

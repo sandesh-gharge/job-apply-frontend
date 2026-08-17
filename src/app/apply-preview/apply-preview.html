@@ -42,7 +42,7 @@
       </div>
       <div class="preview-content">
         @if (cvPreviewUrl$()) {
-          <iframe [src]="cvPreviewUrl$()!" class="pdf-preview" title="CV Preview"></iframe>
+          <iframe #cvIframe [src]="cvPreviewUrl$()!" class="pdf-preview" title="CV Preview"></iframe>
         } @else {
           <div class="empty-state">
             @if (cvLoading$()) {
@@ -71,7 +71,7 @@
       </div>
       <div class="preview-content">
         @if (clPreviewUrl$()) {
-          <iframe [src]="clPreviewUrl$()!" class="pdf-preview" title="Cover Letter Preview"></iframe>
+          <iframe #clIframe [src]="clPreviewUrl$()!" class="pdf-preview" title="Cover Letter Preview"></iframe>
         } @else {
           <div class="empty-state">
             @if (clLoading$()) {
