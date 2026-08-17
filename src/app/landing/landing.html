@@ -1,0 +1,370 @@
+<div class="landing-container">
+  <!-- Sticky Header Bar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <app-name-logo />
+    </div>
+
+    <nav class="nav-links">
+      <a (click)="scrollToSection('features')" class="nav-link">Features</a>
+      <a (click)="scrollToSection('apply-wizard')" class="nav-link">Apply Wizard</a>
+      <a (click)="scrollToSection('cv-builder')" class="nav-link">CV Builder</a>
+      <a (click)="scrollToSection('cl-builder')" class="nav-link">Cover Letter AI</a>
+      <a (click)="scrollToSection('job-tracker')" class="nav-link">Tracker</a>
+    </nav>
+
+    <div class="nav-actions">
+      <!-- Language Selector -->
+      <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)" class="lang-select">
+        @for (lang of translate.languages(); track lang.code) {
+          <option [value]="lang.code" [selected]="translate.currentLang() === lang.code">{{ lang.name }}</option>
+        }
+      </select>
+
+      <!-- Theme Toggle -->
+      <button type="button" (click)="themeService.toggleTheme()" class="theme-toggle-btn" title="Toggle Theme">
+        @if (themeService.theme() === 'dark') { 🌙 } @else { ☀️ }
+      </button>
+
+      <!-- Login CTA Button -->
+      <button (click)="openLoginModal()" class="btn-login-nav">
+        {{ translate.t().landing.signIn }}
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-badge">
+        {{ translate.t().landing.heroBadge }}
+      </div>
+      <h1 class="hero-title">
+        {{ translate.t().landing.heroTitle }}
+      </h1>
+      <p class="hero-subtitle">
+        {{ translate.t().landing.heroSubtitle }}
+      </p>
+
+      <div class="hero-ctas">
+        <button (click)="openLoginModal()" class="btn-primary-lg">
+          🚀 {{ translate.t().landing.getStarted }}
+        </button>
+        <button (click)="scrollToSection('features')" class="btn-secondary-lg">
+          {{ translate.t().landing.exploreFeatures }}
+        </button>
+      </div>
+
+      <!-- Quick Trust Indicators -->
+      <div class="hero-stats-row">
+        <div class="stat-item">
+          <span class="stat-num">{{ translate.t().landing.stats.stat1Number }}</span>
+          <span class="stat-text">{{ translate.t().landing.stats.stat1Label }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">{{ translate.t().landing.stats.stat2Number }}</span>
+          <span class="stat-text">{{ translate.t().landing.stats.stat2Label }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">{{ translate.t().landing.stats.stat3Number }}</span>
+          <span class="stat-text">{{ translate.t().landing.stats.stat3Label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Interactive Preview Mockup -->
+    <div class="hero-mockup-wrapper">
+      <div class="hero-mockup-card">
+        <div class="mockup-header">
+          <div class="mockup-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="mockup-title">JobApply Suite Dashboard</div>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-wizard-preview">
+            <div class="step-indicator">
+              <span class="step active">1. Fetch Job</span>
+              <span class="step">2. Cover Letter</span>
+              <span class="step">3. CV Tuning</span>
+              <span class="step">4. Apply</span>
+            </div>
+            <div class="mockup-url-bar">
+              <span class="icon">🔗</span>
+              <span class="url-text">https://company.career.page.com/jobs/senior-angular-developer</span>
+              <span class="btn-fetch-sm">Fetch & Extract</span>
+            </div>
+            <div class="mockup-pills">
+              <span class="pill company">🏢 SAP SE</span>
+              <span class="pill role">💼 Senior Developer</span>
+              <span class="pill location">📍 Berlin, DE</span>
+              <span class="pill score">✨ 95% Match</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Feature Slideshow / Carousel Section -->
+  <section id="features" class="slideshow-section" (mouseenter)="pauseSlide()" (mouseleave)="resumeSlide()">
+    <div class="section-header">
+      <h2 class="section-title">{{ translate.t().landing.slideshowTitle }}</h2>
+      <p class="section-subtitle">{{ translate.t().landing.slideshowSubtitle }}</p>
+    </div>
+
+    <div class="slideshow-tabs">
+      @for (feat of features; track feat.id; let idx = $index) {
+        <button
+          class="tab-btn"
+          [class.active]="activeSlide() === idx"
+          (click)="setSlide(idx)"
+        >
+          <span class="tab-icon">{{ feat.icon }}</span>
+          <span class="tab-label">{{ translate.t().landing.features[feat.key].title }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="slideshow-viewport">
+      @let currentFeat = features[activeSlide()];
+      @let featData = translate.t().landing.features[currentFeat.key];
+
+      <div class="slide-card animate-fade">
+        <div class="slide-content">
+          <span class="slide-badge">{{ featData.badge }}</span>
+          <h3 class="slide-title">{{ featData.tagline }}</h3>
+          <p class="slide-desc">{{ featData.desc }}</p>
+
+          <ul class="slide-bullets">
+            <li><span class="check">✓</span> {{ featData.bullet1 }}</li>
+            <li><span class="check">✓</span> {{ featData.bullet2 }}</li>
+            <li><span class="check">✓</span> {{ featData.bullet3 }}</li>
+          </ul>
+
+          <button (click)="openLoginModal()" class="btn-slide-cta">
+            Try {{ featData.title }} →
+          </button>
+        </div>
+
+        <div class="slide-graphic">
+          @if (activeSlide() === 0) {
+            <div class="graphic-box wizard-box">
+              <div class="ai-chip">✦ AI Extraction Active</div>
+              <div class="input-sim">Job URL: https://company.career.page.com/jobs/...</div>
+              <div class="extracted-tags">
+                <span class="tag">Role: Senior Frontend Engineer</span>
+                <span class="tag">Tech: Angular, RxJS, TypeScript</span>
+                <span class="tag">Market: Germany (DE)</span>
+              </div>
+            </div>
+          } @else if (activeSlide() === 1) {
+            <div class="graphic-box cv-box">
+              <div class="dnd-item">⠿ Work Experience (Drag to reorder)</div>
+              <div class="dnd-item sub">▸ Senior Developer @ Tech Corp (2021-Present)</div>
+              <div class="dnd-item sub">▸ Frontend Engineer @ Software AG (2018-2021)</div>
+              <div class="score-badge">Completion: 98%</div>
+            </div>
+          } @else if (activeSlide() === 2) {
+            <div class="graphic-box cl-box">
+              <div class="cl-prompt-sim">Global Prompt: "Warm, professional, suitable for German market"</div>
+              <div class="cl-para">"Sehr geehrte Damen und Herren..."</div>
+              <div class="cl-actions">
+                <span class="action-btn">✦ Regenerate Paragraph</span>
+                <span class="action-btn">⎘ Copy Text</span>
+              </div>
+            </div>
+          } @else if (activeSlide() === 3) {
+            <div class="graphic-box tracker-box">
+              <div class="tracker-row">
+                <span>SAP SE</span>
+                <span class="status-badge offer">Offer Received</span>
+              </div>
+              <div class="tracker-row">
+                <span>Siemens</span>
+                <span class="status-badge interview">2nd Interview</span>
+              </div>
+              <div class="tracker-row">
+                <span>BMW Group</span>
+                <span class="status-badge applied">Applied</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Carousel Navigation Controls -->
+      <div class="slideshow-controls">
+        <button (click)="prevSlide()" class="ctrl-btn" aria-label="Previous slide">‹</button>
+        <div class="slide-dots">
+          @for (feat of features; track feat.id; let idx = $index) {
+            <span
+              class="dot"
+              [class.active]="activeSlide() === idx"
+              (click)="setSlide(idx)"
+            ></span>
+          }
+        </div>
+        <button (click)="nextSlide()" class="ctrl-btn" aria-label="Next slide">›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Dive Feature Reveal Sections (Scroll down for more information) -->
+  <section class="scroll-deep-dives">
+    <div class="section-header">
+      <h2 class="section-title">{{ translate.t().landing.scrollSectionTitle }}</h2>
+      <p class="section-subtitle">{{ translate.t().landing.scrollSectionSubtitle }}</p>
+    </div>
+
+    <!-- Section 1: Multi-Step Apply Wizard -->
+    <div id="apply-wizard" class="deep-dive-row">
+      <div class="deep-dive-text">
+        <div class="step-num-badge">01</div>
+        <h2>🧙‍♂️ Multi-Step Apply Wizard</h2>
+        <p class="lead">
+          Stop copying and pasting fields manually. JobApply automatically fetches job descriptions directly from job boards and parses key details using state-of-the-art AI.
+        </p>
+        <ul class="feature-checklist">
+          <li><strong>Instant URL Fetching:</strong> Support for any company career portal, LinkedIn, Indeed, and direct job links.</li>
+          <li><strong>Smart Detail Parsing:</strong> Extracts Role, Company, Location, and required Skills in seconds.</li>
+          <li><strong>Automatic Document Setup:</strong> Pre-fills CV skill tags and initiates tailored cover letter section generation.</li>
+        </ul>
+        <button (click)="openLoginModal()" class="btn-primary-sm">Start Applying Now →</button>
+      </div>
+      <div class="deep-dive-visual">
+        <div class="visual-card-glass">
+          <div class="card-icon">⚡</div>
+          <h3>4-Step Streamlined Process</h3>
+          <div class="process-list">
+            <div class="p-step active">1. Paste Job URL / Description</div>
+            <div class="p-step">2. AI Section-by-Section Cover Letter</div>
+            <div class="p-step">3. Reorder & Customize CV Skills</div>
+            <div class="p-step">4. Side-by-Side Preview & Mark Applied</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Advanced CV Builder -->
+    <div id="cv-builder" class="deep-dive-row reverse">
+      <div class="deep-dive-text">
+        <div class="step-num-badge">02</div>
+        <h2>📄 Advanced Drag-and-Drop CV Builder</h2>
+        <p class="lead">
+          Tailor your resume for every unique position without hassle. Drag and drop sections, highlight relevant bullet points, and maintain multiple targeted versions.
+        </p>
+        <ul class="feature-checklist">
+          <li><strong>Reorder Sections & Items:</strong> Drag experience, education, skills, and projects seamlessly.</li>
+          <li><strong>Profile Synchronisation:</strong> Profile photo, contact details, and links auto-populate into your header.</li>
+          <li><strong>Completion Score & Version Control:</strong> Live completeness metric and JSON export/clone capability.</li>
+        </ul>
+        <button (click)="openLoginModal()" class="btn-primary-sm">Build Your CV →</button>
+      </div>
+      <div class="deep-dive-visual">
+        <div class="visual-card-glass">
+          <div class="card-icon">🎨</div>
+          <h3>Dynamic Resume Management</h3>
+          <div class="cv-features-mini">
+            <div class="mini-chip">✓ Dynamic Personal Info & Signature</div>
+            <div class="mini-chip">✓ Structured Skill Matrix (Frontend, Backend, DevOps)</div>
+            <div class="mini-chip">✓ Version Control ("Save As" per job target)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: AI Cover Letter Generator -->
+    <div id="cl-builder" class="deep-dive-row">
+      <div class="deep-dive-text">
+        <div class="step-num-badge">03</div>
+        <h2>✍️ Intelligent Cover Letter Builder</h2>
+        <p class="lead">
+          Generate professional, market-tested cover letters section by section. Define custom tone rules while regenerating individual paragraphs without altering the whole document.
+        </p>
+        <ul class="feature-checklist">
+          <li><strong>Modular AI Generation:</strong> Regenerate specific paragraphs independently.</li>
+          <li><strong>German Job Market Presets:</strong> Preconfigured prompts aligned with European hiring standards.</li>
+          <li><strong>Clipboard & Versioning:</strong> One-click text copying and saved cover letter revisions.</li>
+        </ul>
+        <button (click)="openLoginModal()" class="btn-primary-sm">Generate Cover Letter →</button>
+      </div>
+      <div class="deep-dive-visual">
+        <div class="visual-card-glass">
+          <div class="card-icon">🧠</div>
+          <h3>AI Tone & Section Guidance</h3>
+          <div class="prompt-box-sim">
+            <span class="label">Common Prompt:</span>
+            <span class="val">"Confident, professional tone for German tech sector..."</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Application Tracker & Dashboard -->
+    <div id="job-tracker" class="deep-dive-row reverse">
+      <div class="deep-dive-text">
+        <div class="step-num-badge">04</div>
+        <h2>📊 Application Tracker & Dashboard</h2>
+        <p class="lead">
+          Maintain full visibility over your entire job search pipeline. Filter applications, monitor interview status, track salary expectations, and store internal notes.
+        </p>
+        <ul class="feature-checklist">
+          <li><strong>Color-Coded Statuses:</strong> Applied, 1st/2nd/3rd Interview, Offer, Rejected, Withdrawn.</li>
+          <li><strong>Multi-Field Filters:</strong> Search by Company, Role, Location, Salary, or Contact Name.</li>
+          <li><strong>Interview Notes & History:</strong> Log feedback and dates to stay prepared for next rounds.</li>
+        </ul>
+        <button (click)="openLoginModal()" class="btn-primary-sm">View Dashboard Demo →</button>
+      </div>
+      <div class="deep-dive-visual">
+        <div class="visual-card-glass">
+          <div class="card-icon">📈</div>
+          <h3>Real-time Search Pipeline</h3>
+          <div class="pipeline-pills">
+            <span class="p-badge applied">Applied (12)</span>
+            <span class="p-badge interview">Interviews (3)</span>
+            <span class="p-badge offer">Offers (1)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom CTA Section -->
+  <section class="cta-banner-section">
+    <div class="cta-card">
+      <h2 class="cta-title">{{ translate.t().landing.ctaTitle }}</h2>
+      <p class="cta-subtitle">{{ translate.t().landing.ctaSubtitle }}</p>
+      <button (click)="openLoginModal()" class="btn-primary-xl">
+        {{ translate.t().landing.ctaBtn }}
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <app-name-logo />
+        <p class="footer-tagline">AI-powered job search assistance for high-performing professionals.</p>
+      </div>
+      <div class="footer-meta">
+        <span>© 2026 JobApply. {{ translate.t().footer.proprietary }}</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Login Modal Overlay Component -->
+  @if (showLoginModal()) {
+    <div class="login-modal-overlay" (click)="closeLoginModal()">
+      <div class="login-modal-dialog" (click)="$event.stopPropagation()">
+        <button (click)="closeLoginModal()" class="close-modal-btn" aria-label="Close login dialog">✕</button>
+        <app-login [isModal]="true" />
+      </div>
+    </div>
+  }
+</div>

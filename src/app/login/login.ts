@@ -1,4 +1,4 @@
-import { computed, Component, signal, inject, OnDestroy, OnInit } from '@angular/core';
+import { computed, Component, signal, inject, OnDestroy, OnInit, Input } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { login } from '@app/utils/store/auth/auth.actions';
@@ -17,7 +17,8 @@ import { ThemeService } from '@app/utils/services/theme.service';
   styleUrl: './login.scss'
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  
+  @Input() isModal = false;
+
   private router = inject(Router);
   private store = inject(Store);
   public translate = inject(TranslationService);

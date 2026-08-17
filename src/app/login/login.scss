@@ -1,21 +1,32 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
 .login-page {
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-body);
+  width: 100%;
   font-family: 'Segoe UI', system-ui, sans-serif;
   color: var(--text-primary);
 }
 
+/* Standalone route gets background and min-height */
+:host-context(:not(.login-modal-dialog)) .login-page {
+  min-height: 100vh;
+  background: var(--bg-body);
+}
+
 .login-card {
   background: var(--bg-card);
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
 }
 
 .brand {

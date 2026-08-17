@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
-import { autoLogin, changePassword, login, loginFailure, loginSuccess, logout } from "./auth.actions";
+import { autoLogin, autoLoginFailure, changePassword, login, loginFailure, loginSuccess, logout } from "./auth.actions";
 import { AuthService } from "../../services/auth.service";
 import { TourService } from "../../services/tour.service";
 import { catchError, from, map, of, switchMap, tap } from "rxjs";
@@ -123,7 +123,7 @@ export class AuthEffects {
 
                         if (!isLoggedIn) {
                             console.log("No active session found for auto-login");
-                            return of(logout());
+                            return of(autoLoginFailure());
                         }
 
                         try {
@@ -145,10 +145,10 @@ export class AuthEffects {
                             }
 
                             console.log("No session found in sessionStorage for auto-login");
-                            return of(logout());
+                            return of(autoLoginFailure());
                         } catch (error) {
                             console.error("Auto-login failed with error:", error);
-                            return of(logout());
+                            return of(autoLoginFailure());
                         }
                     })
                 )

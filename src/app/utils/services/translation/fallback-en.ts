@@ -548,6 +548,68 @@ export const fallbackEn = {
     healthStatus: 'Health Status',
     toastSuccess: 'Health check successful!',
     toastError: 'Health check failed.'
+  },
+  landing: {
+    heroBadge: '✨ AI-Powered Job Application Suite',
+    heroTitle: 'Land Your Dream Job 10x Faster with AI',
+    heroSubtitle: 'Extract job descriptions, generate tailored cover letters for the German market, customize your CV with drag-and-drop ease, and track every application seamlessly.',
+    getStarted: 'Sign In / Get Started',
+    exploreFeatures: 'Explore Features ↓',
+    signIn: 'Sign In',
+    closeLogin: 'Close',
+    slideshowTitle: 'Everything You Need to Win Your Next Role',
+    slideshowSubtitle: 'Interactive tools designed to automate tedious application steps while maintaining personal quality.',
+    features: {
+      applyWizard: {
+        title: 'Multi-Step Apply Wizard',
+        badge: 'Wizard',
+        tagline: 'From Job URL to Ready Application in Minutes',
+        desc: 'Paste any job URL from a company career portal or job board. AI extracts the company, role, requirements, and key skills to auto-generate your tailored application.',
+        bullet1: 'Automatic URL scraping & AI detail extraction',
+        bullet2: 'Instant profile-aware cover letter draft',
+        bullet3: 'Auto-prefill required CV tech skills'
+      },
+      cvBuilder: {
+        title: 'Advanced CV Builder',
+        badge: 'Interactive CV',
+        tagline: 'Structured, Drag-and-Drop Resume Editor',
+        desc: 'Organize your experience with intuitive drag handles. Tailor skill categories, toggle sections, and clone versions per application.',
+        bullet1: 'Reorder sections & bullet points effortlessly',
+        bullet2: 'Dynamic profile photo & header integration',
+        bullet3: 'Live completion score & JSON export'
+      },
+      clBuilder: {
+        title: 'AI Cover Letter Generator',
+        badge: 'Cover Letter',
+        tagline: 'Section-by-Section Tailoring for German Market',
+        desc: 'Craft impactful letters with customizable global prompts. Regenerate specific paragraphs independently without losing your work.',
+        bullet1: 'Modular section-by-section AI prompts',
+        bullet2: 'German market tone presets & guidelines',
+        bullet3: 'One-click clipboard copy & version saving'
+      },
+      jobTracker: {
+        title: 'Job Tracker & Dashboard',
+        badge: 'Dashboard',
+        tagline: 'Centralized Application Lifecycle Management',
+        desc: 'Never lose track of an interview or follow-up. Color-coded pipelines, custom notes, salary tracking, and multi-field search.',
+        bullet1: '7-stage application status pipeline',
+        bullet2: 'Multi-column filtering (Company, Role, Salary)',
+        bullet3: 'Quick interview notes & follow-up logs'
+      }
+    },
+    scrollSectionTitle: 'Designed for High Performance & Ease',
+    scrollSectionSubtitle: 'Scroll to explore how JobApply supercharges every stage of your job hunt.',
+    stats: {
+      stat1Number: '4 Steps',
+      stat1Label: 'To Complete Application',
+      stat2Number: '100%',
+      stat2Label: 'Multilingual (DE / EN)',
+      stat3Number: 'AI Powered',
+      stat3Label: 'Smart Resume Tuning'
+    },
+    ctaTitle: 'Ready to Transform Your Job Search?',
+    ctaSubtitle: 'Join job seekers using AI to apply faster and land more interviews.',
+    ctaBtn: 'Launch JobApply Now'
   }
 };
 
