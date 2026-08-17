@@ -34,7 +34,11 @@ export const addJob = createAction(
 );
 
 export const applyJob = createAction(
-  '[Jobs] Apply Job'
+  '[Jobs] Apply Job',
+  (props?: { cvData?: CvData; coverLetterData?: CoverLetterDocInfo }) => ({
+    cvData: props?.cvData,
+    coverLetterData: props?.coverLetterData
+  })
 );
 
 export const addJobSuccess = createAction(

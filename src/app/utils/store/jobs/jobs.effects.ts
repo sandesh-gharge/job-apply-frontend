@@ -23,7 +23,8 @@ import {
   applyJob
 } from './jobs.actions';
 import { Store } from '@ngrx/store';
-import { selectJobDetails } from '../apply-wizard/apply-wizard.selectors';
+import { selectJobDetails, selectCvDetails, selectCoverLetterDetails } from '../apply-wizard/apply-wizard.selectors';
+import { selectCurrentCV } from '../cv/cv.selectors';
 
 @Injectable()
 export class JobsEffects {
@@ -94,11 +95,18 @@ export class JobsEffects {
   applyJob$ = createEffect(() =>
     this.actions$.pipe(
       ofType(applyJob),
-      withLatestFrom(this.store.select(selectJobDetails)),
-      switchMap(([_, jobDetails]) =>
-        concat(
+      withLatestFrom(
+        this.store.select(selectJobDetails),
+        this.store.select(selectCvDetails),
+        this.store.select(selectCurrentCV),
+        this.store.select(selectCoverLetterDetails)
+      ),
+      switchMap(([action, jobDetails, cvDetails, currentCv, coverLetterDetails]) => {
+        const cvData = action.cvData ?? cvDetails?.cvData ?? currentCv?.cvData;
+        const coverLetterData = action.coverLetterData ?? coverLetterDetails;
+        return concat(
           of(addLoadingFlag({ key: LOADING_KEYS.APPLY_JOB, messageKey: 'applyWizard.loadingApplyJob' })),
-          this.jobsService.applyAndSaveJob(undefined, undefined, jobDetails).pipe(
+          this.jobsService.applyAndSaveJob(cvData, coverLetterData, jobDetails).pipe(
             switchMap((savedJob) => {
               this.toastService.show('Application applied successfully!');
               const jobData = savedJob.jobObj ? savedJob.jobObj : savedJob;
@@ -115,8 +123,8 @@ export class JobsEffects {
               );
             })
           )
-        )
-      )
+        );
+      })
     )
   );
 
