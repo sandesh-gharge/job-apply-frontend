@@ -550,65 +550,65 @@ export const fallbackEn = {
     toastError: 'Health check failed.'
   },
   landing: {
-    heroBadge: '✨ AI-Powered Job Application Suite',
-    heroTitle: 'Land Your Dream Job 10x Faster with AI',
-    heroSubtitle: 'Extract job descriptions, generate tailored cover letters for the German market, customize your CV with drag-and-drop ease, and track every application seamlessly.',
+    heroBadge: '✨ Personal Application Assistant',
+    heroTitle: 'Craft Personal, High-Impact Applications',
+    heroSubtitle: 'Automate repetitive formatting and job data extraction so you can focus on writing authentic cover letters and building concise, targeted CVs that stand out to hiring managers.',
     getStarted: 'Sign In / Get Started',
-    exploreFeatures: 'Explore Features ↓',
+    exploreFeatures: 'Explore How It Works ↓',
     signIn: 'Sign In',
     closeLogin: 'Close',
-    slideshowTitle: 'Everything You Need to Win Your Next Role',
+    slideshowTitle: 'Smart Automation with Your Personal Touch',
     slideshowSubtitle: 'Interactive tools designed to automate tedious application steps while maintaining personal quality.',
     features: {
       applyWizard: {
-        title: 'Multi-Step Apply Wizard',
-        badge: 'Wizard',
-        tagline: 'From Job URL to Ready Application in Minutes',
-        desc: 'Paste any job URL from a company career portal or job board. AI extracts the company, role, requirements, and key skills to auto-generate your tailored application.',
-        bullet1: 'Automatic URL scraping & AI detail extraction',
-        bullet2: 'Instant profile-aware cover letter draft',
-        bullet3: 'Auto-prefill required CV tech skills'
+        title: 'Guided Application Setup',
+        badge: 'Workflow',
+        tagline: 'Extract Job Details & Focus on Your Personal Story',
+        desc: 'Paste any job URL to automatically parse company details and requirements. Focus your energy on refining your personal narrative rather than manual data entry.',
+        bullet1: 'Instant job requirement & company detail parsing',
+        bullet2: 'Pre-populates application structure to save setup time',
+        bullet3: 'Keeps you in full control of tone, style, and content'
       },
       cvBuilder: {
-        title: 'Advanced CV Builder',
-        badge: 'Interactive CV',
-        tagline: 'Structured, Drag-and-Drop Resume Editor',
-        desc: 'Organize your experience with intuitive drag handles. Tailor skill categories, toggle sections, and clone versions per application.',
-        bullet1: 'Reorder sections & bullet points effortlessly',
-        bullet2: 'Dynamic profile photo & header integration',
-        bullet3: 'Live completion score & JSON export'
+        title: 'Targeted CV Customization',
+        badge: 'Resume Editor',
+        tagline: 'Prepare Concise, Position-Specific Resumes',
+        desc: 'Easily highlight relevant experience, drag section bullet points into order, and filter tech skills so recruiters see a crisp, focused profile without fluff.',
+        bullet1: 'Drag-and-drop bullet reordering to highlight top achievements',
+        bullet2: 'Categorize & filter tech stacks per position',
+        bullet3: 'Dynamic profile header & version management'
       },
       clBuilder: {
-        title: 'AI Cover Letter Generator',
+        title: 'Assisted Cover Letter Crafting',
         badge: 'Cover Letter',
-        tagline: 'Section-by-Section Tailoring for German Market',
-        desc: 'Craft impactful letters with customizable global prompts. Regenerate specific paragraphs independently without losing your work.',
-        bullet1: 'Modular section-by-section AI prompts',
-        bullet2: 'German market tone presets & guidelines',
-        bullet3: 'One-click clipboard copy & version saving'
+        tagline: 'Intelligent Suggestions with Full Content Control',
+        desc: 'Use section-by-section drafting prompts for inspiration and structure. Refine, rewrite, or alter any paragraph whenever necessary to ensure your authentic voice shines through.',
+        bullet1: 'Modular paragraph suggestions for intro, body, and closing',
+        bullet2: 'Tailored tone guidance for the German job market',
+        bullet3: 'Edit and customize every sentence freely before export'
       },
       jobTracker: {
         title: 'Job Tracker & Dashboard',
-        badge: 'Dashboard',
-        tagline: 'Centralized Application Lifecycle Management',
-        desc: 'Never lose track of an interview or follow-up. Color-coded pipelines, custom notes, salary tracking, and multi-field search.',
-        bullet1: '7-stage application status pipeline',
-        bullet2: 'Multi-column filtering (Company, Role, Salary)',
-        bullet3: 'Quick interview notes & follow-up logs'
+        badge: 'Pipeline',
+        tagline: 'Keep Your Entire Job Search Organized',
+        desc: 'Track every targeted application through color-coded interview stages, keep private feedback notes, and monitor your career pipeline with ease.',
+        bullet1: '7-stage application pipeline (Applied ➔ Interviews ➔ Offer)',
+        bullet2: 'Private interview notes & follow-up tracking',
+        bullet3: 'Multi-field filtering by company, role, and salary'
       }
     },
-    scrollSectionTitle: 'Designed for High Performance & Ease',
-    scrollSectionSubtitle: 'Scroll to explore how JobApply supercharges every stage of your job hunt.',
+    scrollSectionTitle: 'Designed for Authenticity & Precision',
+    scrollSectionSubtitle: 'Scroll to explore how JobApply simplifies setup while keeping your personal touch front and center.',
     stats: {
       stat1Number: '4 Steps',
       stat1Label: 'To Complete Application',
       stat2Number: '100%',
       stat2Label: 'Multilingual (DE / EN)',
-      stat3Number: 'AI Powered',
-      stat3Label: 'Smart Resume Tuning'
+      stat3Number: 'Zero Spam',
+      stat3Label: '100% Authentic Quality'
     },
-    ctaTitle: 'Ready to Transform Your Job Search?',
-    ctaSubtitle: 'Join job seekers using AI to apply faster and land more interviews.',
+    ctaTitle: 'Ready to Craft Standout Applications?',
+    ctaSubtitle: 'Join job seekers using smart automation to apply faster while maintaining full personal touch.',
     ctaBtn: 'Launch JobApply Now'
   }
 };

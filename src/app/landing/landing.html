@@ -225,14 +225,14 @@
     <div id="apply-wizard" class="deep-dive-row">
       <div class="deep-dive-text">
         <div class="step-num-badge">01</div>
-        <h2>🧙‍♂️ Multi-Step Apply Wizard</h2>
+        <h2>🧙‍♂️ {{ translate.t().landing.features.applyWizard.title }}</h2>
         <p class="lead">
-          Stop copying and pasting fields manually. JobApply automatically fetches job descriptions directly from job boards and parses key details using state-of-the-art AI.
+          {{ translate.t().landing.features.applyWizard.desc }}
         </p>
         <ul class="feature-checklist">
-          <li><strong>Instant URL Fetching:</strong> Support for any company career portal, LinkedIn, Indeed, and direct job links.</li>
-          <li><strong>Smart Detail Parsing:</strong> Extracts Role, Company, Location, and required Skills in seconds.</li>
-          <li><strong>Automatic Document Setup:</strong> Pre-fills CV skill tags and initiates tailored cover letter section generation.</li>
+          <li><strong>Smart Extraction:</strong> {{ translate.t().landing.features.applyWizard.bullet1 }}</li>
+          <li><strong>Setup Automation:</strong> {{ translate.t().landing.features.applyWizard.bullet2 }}</li>
+          <li><strong>Full Ownership:</strong> {{ translate.t().landing.features.applyWizard.bullet3 }}</li>
         </ul>
         <button (click)="openLoginModal()" class="btn-primary-sm">Start Applying Now →</button>
       </div>
@@ -242,8 +242,8 @@
           <h3>4-Step Streamlined Process</h3>
           <div class="process-list">
             <div class="p-step active">1. Paste Job URL / Description</div>
-            <div class="p-step">2. AI Section-by-Section Cover Letter</div>
-            <div class="p-step">3. Reorder & Customize CV Skills</div>
+            <div class="p-step">2. Section-by-Section Cover Letter Suggestions</div>
+            <div class="p-step">3. Reorder & Tailor Concise CV Skills</div>
             <div class="p-step">4. Side-by-Side Preview & Mark Applied</div>
           </div>
         </div>
@@ -254,14 +254,14 @@
     <div id="cv-builder" class="deep-dive-row reverse">
       <div class="deep-dive-text">
         <div class="step-num-badge">02</div>
-        <h2>📄 Advanced Drag-and-Drop CV Builder</h2>
+        <h2>📄 {{ translate.t().landing.features.cvBuilder.title }}</h2>
         <p class="lead">
-          Tailor your resume for every unique position without hassle. Drag and drop sections, highlight relevant bullet points, and maintain multiple targeted versions.
+          {{ translate.t().landing.features.cvBuilder.desc }}
         </p>
         <ul class="feature-checklist">
-          <li><strong>Reorder Sections & Items:</strong> Drag experience, education, skills, and projects seamlessly.</li>
-          <li><strong>Profile Synchronisation:</strong> Profile photo, contact details, and links auto-populate into your header.</li>
-          <li><strong>Completion Score & Version Control:</strong> Live completeness metric and JSON export/clone capability.</li>
+          <li><strong>Highlight Experience:</strong> {{ translate.t().landing.features.cvBuilder.bullet1 }}</li>
+          <li><strong>Targeted Skills:</strong> {{ translate.t().landing.features.cvBuilder.bullet2 }}</li>
+          <li><strong>Profile Control:</strong> {{ translate.t().landing.features.cvBuilder.bullet3 }}</li>
         </ul>
         <button (click)="openLoginModal()" class="btn-primary-sm">Build Your CV →</button>
       </div>
@@ -282,24 +282,24 @@
     <div id="cl-builder" class="deep-dive-row">
       <div class="deep-dive-text">
         <div class="step-num-badge">03</div>
-        <h2>✍️ Intelligent Cover Letter Builder</h2>
+        <h2>✍️ {{ translate.t().landing.features.clBuilder.title }}</h2>
         <p class="lead">
-          Generate professional, market-tested cover letters section by section. Define custom tone rules while regenerating individual paragraphs without altering the whole document.
+          {{ translate.t().landing.features.clBuilder.desc }}
         </p>
         <ul class="feature-checklist">
-          <li><strong>Modular AI Generation:</strong> Regenerate specific paragraphs independently.</li>
-          <li><strong>German Job Market Presets:</strong> Preconfigured prompts aligned with European hiring standards.</li>
-          <li><strong>Clipboard & Versioning:</strong> One-click text copying and saved cover letter revisions.</li>
+          <li><strong>Modular Drafting:</strong> {{ translate.t().landing.features.clBuilder.bullet1 }}</li>
+          <li><strong>German Market Standards:</strong> {{ translate.t().landing.features.clBuilder.bullet2 }}</li>
+          <li><strong>Complete Freedom:</strong> {{ translate.t().landing.features.clBuilder.bullet3 }}</li>
         </ul>
-        <button (click)="openLoginModal()" class="btn-primary-sm">Generate Cover Letter →</button>
+        <button (click)="openLoginModal()" class="btn-primary-sm">Craft Cover Letter →</button>
       </div>
       <div class="deep-dive-visual">
         <div class="visual-card-glass">
           <div class="card-icon">🧠</div>
-          <h3>AI Tone & Section Guidance</h3>
+          <h3>Intelligent Guidance & Suggestions</h3>
           <div class="prompt-box-sim">
-            <span class="label">Common Prompt:</span>
-            <span class="val">"Confident, professional tone for German tech sector..."</span>
+            <span class="label">Custom Tone Guidance:</span>
+            <span class="val">"Warm, professional tone tailored for German tech sector..."</span>
           </div>
         </div>
       </div>
@@ -309,14 +309,14 @@
     <div id="job-tracker" class="deep-dive-row reverse">
       <div class="deep-dive-text">
         <div class="step-num-badge">04</div>
-        <h2>📊 Application Tracker & Dashboard</h2>
+        <h2>📊 {{ translate.t().landing.features.jobTracker.title }}</h2>
         <p class="lead">
-          Maintain full visibility over your entire job search pipeline. Filter applications, monitor interview status, track salary expectations, and store internal notes.
+          {{ translate.t().landing.features.jobTracker.desc }}
         </p>
         <ul class="feature-checklist">
-          <li><strong>Color-Coded Statuses:</strong> Applied, 1st/2nd/3rd Interview, Offer, Rejected, Withdrawn.</li>
-          <li><strong>Multi-Field Filters:</strong> Search by Company, Role, Location, Salary, or Contact Name.</li>
-          <li><strong>Interview Notes & History:</strong> Log feedback and dates to stay prepared for next rounds.</li>
+          <li><strong>Status Pipeline:</strong> {{ translate.t().landing.features.jobTracker.bullet1 }}</li>
+          <li><strong>Private Notes:</strong> {{ translate.t().landing.features.jobTracker.bullet2 }}</li>
+          <li><strong>Advanced Search:</strong> {{ translate.t().landing.features.jobTracker.bullet3 }}</li>
         </ul>
         <button (click)="openLoginModal()" class="btn-primary-sm">View Dashboard Demo →</button>
       </div>
