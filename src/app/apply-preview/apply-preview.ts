@@ -185,7 +185,10 @@ export class ApplyPreviewComponent {
 
       if (iframeEl && iframeEl.contentWindow) {
         iframeEl.contentWindow.focus();
+        const tempTitle = window.document.title;
+        window.document.title = `${this.profileInfo()?.firstName}_${this.profileInfo()?.lastName}` + (type === 'cv' ? `_CV` : `_Cover_Letter`);
         iframeEl.contentWindow.print();
+        window.document.title = tempTitle;
         this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastDownloadedCv : this.translate.t().applyPreview.toastDownloadedCl);
       } else {
         throw new Error('Iframe element or contentWindow is unavailable');
