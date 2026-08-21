@@ -1,0 +1,292 @@
+<div class="application-chart-container">
+  <!-- Chart Controls & Header -->
+  <div class="chart-header">
+    <div class="chart-title-box">
+      <h3 class="chart-title">{{ translate.t().dashboard.chartTitle }}</h3>
+      <p class="chart-subtitle">{{ translate.t().dashboard.chartSubtitle }}</p>
+    </div>
+
+    <div class="chart-controls-row">
+      <!-- Timeframe Filter Buttons -->
+      <div class="filter-pill-group" role="group" aria-label="Timeframe filter">
+        <button
+          class="filter-pill"
+          [class.active]="selectedTimeFilter() === '24h'"
+          (click)="setTimeFilter('24h')"
+        >
+          {{ translate.t().dashboard.time24h }}
+        </button>
+        <button
+          class="filter-pill"
+          [class.active]="selectedTimeFilter() === '1D'"
+          (click)="setTimeFilter('1D')"
+        >
+          {{ translate.t().dashboard.time1D }}
+        </button>
+        <button
+          class="filter-pill"
+          [class.active]="selectedTimeFilter() === '2D'"
+          (click)="setTimeFilter('2D')"
+        >
+          {{ translate.t().dashboard.time2D }}
+        </button>
+        <button
+          class="filter-pill"
+          [class.active]="selectedTimeFilter() === '1W'"
+          (click)="setTimeFilter('1W')"
+        >
+          {{ translate.t().dashboard.time1W }}
+        </button>
+        <button
+          class="filter-pill"
+          [class.active]="selectedTimeFilter() === '1M'"
+          (click)="setTimeFilter('1M')"
+        >
+          {{ translate.t().dashboard.time1M }}
+        </button>
+      </div>
+
+      <!-- Graph Type Switcher -->
+      <div class="type-switch-group" role="group" aria-label="Graph Type">
+        <button
+          class="type-btn"
+          [class.active]="selectedChartType() === 'bar'"
+          (click)="setChartType('bar')"
+          [title]="translate.t().dashboard.barGraph"
+        >
+          <span class="icon">📊</span>
+          <span class="label">{{ translate.t().dashboard.barGraph }}</span>
+        </button>
+        <button
+          class="type-btn"
+          [class.active]="selectedChartType() === 'line'"
+          (click)="setChartType('line')"
+          [title]="translate.t().dashboard.lineGraph"
+        >
+          <span class="icon">📈</span>
+          <span class="label">{{ translate.t().dashboard.lineGraph }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Summary Row -->
+  <div class="kpi-summary-grid">
+    <div class="kpi-card">
+      <div class="kpi-value">{{ totalAppliedInPeriod() }}</div>
+      <div class="kpi-label">{{ translate.t().dashboard.totalInPeriod }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ dailyAverage() }}</div>
+      <div class="kpi-label">{{ translate.t().dashboard.dailyAvg }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ peakPeriod() }}</div>
+      <div class="kpi-label">{{ translate.t().dashboard.peakPeriod }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value highlight">{{ interviewRateInPeriod() }}</div>
+      <div class="kpi-label">{{ translate.t().dashboard.interviewRate }}</div>
+    </div>
+  </div>
+
+  <!-- Main Interactive SVG Chart -->
+  <div class="chart-svg-wrapper">
+    <svg
+      class="chart-svg"
+      [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <!-- Bar Gradient -->
+        <linearGradient id="appBarGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="1" />
+          <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.8" />
+        </linearGradient>
+        <linearGradient id="appBarHoverGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#60a5fa" stop-opacity="1" />
+          <stop offset="100%" stop-color="#2563eb" stop-opacity="0.9" />
+        </linearGradient>
+
+        <!-- Line Gradient Area Fill -->
+        <linearGradient id="appAreaGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4" />
+          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02" />
+        </linearGradient>
+
+        <!-- Drop Shadow Filter -->
+        <filter id="glowShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#3b82f6" flood-opacity="0.3" />
+        </filter>
+      </defs>
+
+      <!-- Y-Axis Gridlines & Labels -->
+      @for (line of yGridlines(); track line.value) {
+        <line
+          [attr.x1]="paddingLeft"
+          [attr.y1]="line.y"
+          [attr.x2]="svgWidth - paddingRight"
+          [attr.y2]="line.y"
+          class="grid-line"
+        />
+        <text
+          [attr.x]="paddingLeft - 8"
+          [attr.y]="line.y + 4"
+          text-anchor="end"
+          class="axis-label"
+        >
+          {{ line.value }}
+        </text>
+      }
+
+      <!-- X-Axis Line -->
+      <line
+        [attr.x1]="paddingLeft"
+        [attr.y1]="paddingTop + drawHeight"
+        [attr.x2]="svgWidth - paddingRight"
+        [attr.y2]="paddingTop + drawHeight"
+        class="axis-line"
+      />
+
+      <!-- BAR GRAPH MODE -->
+      @if (selectedChartType() === 'bar') {
+        @for (bucket of chartBuckets(); track bucket.id; let i = $index) {
+          <g
+            class="bar-group"
+            [class.hovered]="hoveredIndex() === i"
+            (mouseenter)="hoveredIndex.set(i)"
+            (mouseleave)="hoveredIndex.set(null)"
+          >
+            <!-- Bar Rect -->
+            <rect
+              [attr.x]="bucket.barX"
+              [attr.y]="bucket.barY"
+              [attr.width]="bucket.barWidth"
+              [attr.height]="bucket.barHeight"
+              rx="6"
+              [attr.fill]="hoveredIndex() === i ? 'url(#appBarHoverGradient)' : 'url(#appBarGradient)'"
+              class="chart-bar"
+              [attr.filter]="hoveredIndex() === i ? 'url(#glowShadow)' : null"
+            />
+
+            <!-- Count Label above Bar -->
+            <text
+              [attr.x]="bucket.x"
+              [attr.y]="(bucket.barY ?? 0) - 6"
+              text-anchor="middle"
+              class="bar-count-label"
+              [class.visible]="bucket.count > 0 || hoveredIndex() === i"
+            >
+              {{ bucket.count }}
+            </text>
+          </g>
+        }
+      }
+
+      <!-- LINE CHART MODE -->
+      @if (selectedChartType() === 'line') {
+        <!-- Area Fill under curve -->
+        @if (chartBuckets().length > 0) {
+          <path
+            [attr.d]="areaPathD()"
+            fill="url(#appAreaGradient)"
+            class="area-path"
+          />
+
+          <!-- Smooth Line Curve -->
+          <path
+            [attr.d]="linePathD()"
+            fill="none"
+            stroke="#3b82f6"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="line-path"
+            filter="url(#glowShadow)"
+          />
+        }
+
+        <!-- Line Points & Node Circles -->
+        @for (bucket of chartBuckets(); track bucket.id; let i = $index) {
+          <g
+            class="point-group"
+            [class.hovered]="hoveredIndex() === i"
+            (mouseenter)="hoveredIndex.set(i)"
+            (mouseleave)="hoveredIndex.set(null)"
+          >
+            <!-- Vertical Hover Guideline -->
+            @if (hoveredIndex() === i) {
+              <line
+                [attr.x1]="bucket.x"
+                [attr.y1]="paddingTop"
+                [attr.x2]="bucket.x"
+                [attr.y2]="paddingTop + drawHeight"
+                class="hover-guideline"
+              />
+            }
+
+            <!-- Point Circle -->
+            <circle
+              [attr.cx]="bucket.x"
+              [attr.cy]="bucket.y"
+              [attr.r]="hoveredIndex() === i ? 7 : 4.5"
+              class="point-circle"
+            />
+
+            <!-- Count Label over Point -->
+            <text
+              [attr.x]="bucket.x"
+              [attr.y]="(bucket.y ?? 0) - 10"
+              text-anchor="middle"
+              class="line-count-label"
+              [class.visible]="bucket.count > 0 || hoveredIndex() === i"
+            >
+              {{ bucket.count }}
+            </text>
+          </g>
+        }
+      }
+
+      <!-- X-Axis Bucket Labels -->
+      @for (bucket of chartBuckets(); track bucket.id; let i = $index) {
+        <text
+          [attr.x]="bucket.x"
+          [attr.y]="paddingTop + drawHeight + 22"
+          text-anchor="middle"
+          class="x-axis-label"
+          [class.active]="hoveredIndex() === i"
+        >
+          {{ bucket.label }}
+        </text>
+      }
+    </svg>
+
+    <!-- Floating Hover Tooltip -->
+    @if (hoveredBucket(); as hb) {
+      <div
+        class="chart-tooltip"
+        [style.left.%]="((hb.x ?? 0) / svgWidth) * 100"
+      >
+        <div class="tooltip-header">
+          <span class="tooltip-time">{{ hb.sublabel }}</span>
+          <span class="tooltip-badge">{{ hb.count }} {{ translate.t().dashboard.applications }}</span>
+        </div>
+        @if (hb.jobs.length > 0) {
+          <div class="tooltip-jobs-list">
+            @for (job of hb.jobs.slice(0, 3); track job.id) {
+              <div class="tooltip-job-item">
+                <span class="company">{{ job.companyName }}</span>
+                <span class="role">{{ job.role }}</span>
+              </div>
+            }
+            @if (hb.jobs.length > 3) {
+              <div class="tooltip-more">+{{ hb.jobs.length - 3 }} more</div>
+            }
+          </div>
+        } @else {
+          <div class="tooltip-empty">{{ translate.t().dashboard.noAppsInPeriod }}</div>
+        }
+      </div>
+    }
+  </div>
+</div>

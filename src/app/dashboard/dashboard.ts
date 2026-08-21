@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { JobStatus } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';
@@ -11,10 +11,11 @@ import {
   selectJobsLoading
 } from '../utils/store/jobs/jobs.selectors';
 import { TranslationService } from '../utils/services/translation/translation.service';
+import { ApplicationChartComponent } from './application-chart/application-chart';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [TitleCasePipe],
+  imports: [TitleCasePipe, ApplicationChartComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
@@ -22,11 +23,18 @@ export class DashboardComponent {
   private store = inject(Store);
   public translate = inject(TranslationService);
 
+  // View Mode: 'chart' (default) or 'list' (upcoming interviews & recent applications)
+  viewMode = signal<'chart' | 'list'>('chart');
+
   stats = this.store.selectSignal(selectJobsStats);
   jobs = this.store.selectSignal(selectAllJobs);
   jobsLoading = this.store.selectSignal(selectJobsLoading);
 
   user=this.store.selectSignal(selectCurrentUser)();
+
+  setViewMode(mode: 'chart' | 'list') {
+    this.viewMode.set(mode);
+  }
 
   upcomingInterviews = this.store.selectSignal(selectUpcomingInterviews);
   recentActivity = this.store.selectSignal(selectRecentActivity);

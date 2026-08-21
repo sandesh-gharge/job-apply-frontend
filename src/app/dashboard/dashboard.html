@@ -161,6 +161,34 @@
     </div>
   </div>
 
+  <div class="view-mode-bar">
+    <div class="view-toggle-pills" role="tablist" aria-label="Dashboard Overview Mode">
+      <button
+        class="view-pill"
+        [class.active]="viewMode() === 'chart'"
+        (click)="setViewMode('chart')"
+        role="tab"
+        [attr.aria-selected]="viewMode() === 'chart'"
+      >
+        <span class="pill-icon">📊</span>
+        <span>{{ translate.t().dashboard.chartAnalytics }}</span>
+      </button>
+      <button
+        class="view-pill"
+        [class.active]="viewMode() === 'list'"
+        (click)="setViewMode('list')"
+        role="tab"
+        [attr.aria-selected]="viewMode() === 'list'"
+      >
+        <span class="pill-icon">📋</span>
+        <span>{{ translate.t().dashboard.currentList }}</span>
+      </button>
+    </div>
+  </div>
+
+  @if (viewMode() === 'chart') {
+    <app-application-chart [jobs]="jobs()" />
+  } @else {
   <div class="panels">
     <div class="panel">
       <h3 class="panel-title">{{ translate.t().dashboard.upcomingInterviews }}</h3>
@@ -195,6 +223,7 @@
       }
     </div>
   </div>
+  }
 
   <div class="panel progress-panel">
     <h3 class="panel-title">{{ translate.t().dashboard.pipelineTitle }}</h3>
