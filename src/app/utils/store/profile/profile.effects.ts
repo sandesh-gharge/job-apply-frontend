@@ -6,8 +6,7 @@ import { ProfileService } from "../../services/profile.service";
 import { AgentsService } from "../../services/agents.service";
 import { ProfileInfo } from "../../entities/user";
 import { ToastService } from "@app/utils/services/toast.service";
-import { loginSuccess } from "../auth/auth.actions";
-import { AuthService } from "@app/utils/services/auth.service";
+import { setSelectedClTemplate, setSelectedCvTemplate } from "../templates/templates.actions";
 
 
 @Injectable()
@@ -34,6 +33,16 @@ export class ProfileEffects {
                     )
                 )
             )
+        )
+    );
+
+    loadProfileInfoSuccess$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(loadProfileInfoSuccess),
+            switchMap(({ profileInfo }) => [
+                setSelectedCvTemplate({ id: profileInfo.selectedCvTemplate ?? null }),
+                setSelectedClTemplate({ id: profileInfo.selectedClTemplate ?? null })
+            ])
         )
     );
 
