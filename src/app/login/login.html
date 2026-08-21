@@ -8,12 +8,8 @@
         }
       </select>
       
-      <button type="button" (click)="themeService.toggleTheme()" class="theme-toggle" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary, inherit); padding: 0;">
-        @if (themeService.theme() === 'dark') {
-        🌙
-        } @else {
-        ☀️
-        }
+      <button type="button" (click)="themeService.toggleTheme()" class="theme-toggle" title="Toggle Theme" style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 1rem; cursor: pointer; color: var(--text-primary); padding: 4px 10px; border-radius: 8px;">
+        @if (themeService.theme() === 'soft') { 🌤️ Soft } @else if (themeService.theme() === 'dark') { 🌙 Dark } @else { ☀️ Bright }
       </button>
     </div>
   }
@@ -65,7 +61,5 @@
         }
       </button>
     </form>
-
-    <!--<p class="hint">{{ translate.t().login.demoHint }}</p>-->
   </div>
 </div>

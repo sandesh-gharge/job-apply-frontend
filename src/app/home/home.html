@@ -70,10 +70,17 @@
             <div class="menu-options-row">
               <button 
                 class="menu-option-btn" 
+                [class.active]="themeService.theme() === 'soft'"
+                (click)="themeService.theme.set('soft'); $event.stopPropagation()"
+              >
+                🌤️ Soft
+              </button>
+              <button 
+                class="menu-option-btn" 
                 [class.active]="themeService.theme() === 'light'"
                 (click)="themeService.theme.set('light'); $event.stopPropagation()"
               >
-                ☀️ Light
+                ☀️ Bright
               </button>
               <button 
                 class="menu-option-btn" 

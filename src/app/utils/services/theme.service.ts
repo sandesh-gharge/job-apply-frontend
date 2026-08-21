@@ -1,7 +1,7 @@
 import { Injectable, signal, effect, inject } from '@angular/core';
 import { StorageService } from './storage.service';
 
-export type ThemeType = 'light' | 'dark';
+export type ThemeType = 'soft' | 'light' | 'dark';
 
 @Injectable({
   providedIn: 'root'
@@ -18,21 +18,25 @@ export class ThemeService {
       document.documentElement.setAttribute('data-theme', activeTheme);
       this.storageService.set('theme', activeTheme);
       const favicon = document.getElementById('app-favicon') as HTMLLinkElement;
-      favicon.href = `assets/logo-${this.theme()}.svg?theme=${this.theme()}`; // Update favicon based on theme
+      if (favicon) {
+        favicon.href = `assets/logo-light.svg?v=2`;
+      }
     });
   }
 
   toggleTheme() {
-    this.theme.update(current => (current === 'light' ? 'dark' : 'light'));
+    this.theme.update(current => {
+      if (current === 'soft') return 'dark';
+      if (current === 'dark') return 'light';
+      return 'soft';
+    });
   }
 
   private getInitialTheme(): ThemeType {
     const saved = this.storageService.get<ThemeType | null>('theme', null);
-    if (saved === 'light' || saved === 'dark') {
+    if (saved === 'soft' || saved === 'light' || saved === 'dark') {
       return saved;
     }
-    // Fallback to system preference
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    return mediaQuery.matches ? 'dark' : 'light';
+    return 'soft'; // Default to Soft Slate (eye-friendly semi-light)
   }
 }
